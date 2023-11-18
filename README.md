@@ -7,24 +7,24 @@ Move Left: A \
 Move Right: D \
 Jump: W \
 Attack: Space \
-**WIP** \
+**WIP** 
 
 ## To start server ##
-- must have node.js \ 
+- must have node.js  
 
-> git clone <repository> \  
+> git clone <repository>   
 > cd /path/to/repo/  \
 > node server.js \
 On Browser: \
-> http://localhost:8080  \  
+> http://localhost:8080    
 
 Players 1 and 2 must join for the game to start, \
-and both players must **EXIT** the page in order to \  
-restart the game (again this is wip). \
+and both players must **EXIT** the page in order to   
+restart the game (again this is wip). 
 
-Code uses localhost for demo, but replacing \ 
+Code uses localhost for demo, but replacing  
 localhost with port forwarded ip will work  \
-if the index.html is hosted on the same ip \
+if the index.html is hosted on the same ip 
 
 
 ## made with kaboom.js ##
