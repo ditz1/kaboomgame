@@ -1,30 +1,30 @@
 # Socket.io Basic Fighting Game Implementation #
 ### ditz1 ###
 
-Basic fighting game run through node and websockets. \\
-Controls: \\
-Move Left: A \\
-Move Right: D \\
-Jump: W \\
-Attack: Space \\
-**WIP** \\
+Basic fighting game run through node and websockets. \
+Controls: \
+Move Left: A \
+Move Right: D \
+Jump: W \
+Attack: Space \
+**WIP** \
 
 ## To start server ##
-- must have node.js 
+- must have node.js \ 
 
-> git clone <repository> 
-> cd /path/to/repo/  
-> node server.js 
-On Browser: \\ 
-> http://localhost:8080 
+> git clone <repository> \  
+> cd /path/to/repo/  \
+> node server.js \
+On Browser: \
+> http://localhost:8080  \  
 
-Players 1 and 2 must join for the game to start, \\
-and both players must **EXIT** the page in order to \\  
-restart the game (again this is wip). \\ 
+Players 1 and 2 must join for the game to start, \
+and both players must **EXIT** the page in order to \  
+restart the game (again this is wip). \
 
-Code uses localhost for demo, but replacing \\ 
-localhost with port forwarded ip will work  \\
-if the index.html is hosted on the same ip \\
+Code uses localhost for demo, but replacing \ 
+localhost with port forwarded ip will work  \
+if the index.html is hosted on the same ip \
 
 
 ## made with kaboom.js ##
