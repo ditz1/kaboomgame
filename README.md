@@ -14,7 +14,7 @@ Attack: Space \
 
 >> git clone <repository>   
 
-\> cd /path/to/repo/  \
+>> \$ cd /path/to/repo/  \
 
 >> node server.js \
 
