@@ -21,20 +21,26 @@ io.on('connection', (socket) => {
     playercount++;
     console.log("players: " + playercount);
     if (playerNumber > 2) playerNumber = null; // Limit to 2 players
-    playerNumber = playercount; 
+   
     players[socket.id] = { playerNumber };
 
     // Inform the player of their number
     socket.emit('playerNumber', playerNumber);
-     
-    
+    socket.on('ready', (data) => {
+        data.playerNumber = players[socket.id].playerNumber;
+        if ((Object.keys(players).length) > 0) {
+            io.emit('ready', data); // Emit to all clients
+            console.log("player ready");
+        }
+        
+    });
     socket.on('move', (data) => {
         
         data.playerNumber = players[socket.id].playerNumber;
         
         if ((Object.keys(players).length) > 1) {
             io.emit('move', data); // Emit to all clients
-            console.log("playermove");
+            console.log("player move");
         } else {
             data = "wait until the other player connects";
             io.emit("wait", data);
@@ -47,7 +53,7 @@ io.on('connection', (socket) => {
         
         if ((Object.keys(players).length) > 1) {
             io.emit('release', data); // Emit to all clients
-            console.log("releasedkey");
+            console.log("released key");
         } else {
             data = "wait until the other player connects";
             io.emit("wait", data);
@@ -58,7 +64,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         delete players[socket.id];
         playercount--;
-        console.log('User disconnected');
         console.log("players: " + playercount);
         
     });

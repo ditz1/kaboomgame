@@ -1,5 +1,5 @@
 //game init
-kaboom({ width: 1280, height: 720, scale: 0.7, debug: true})
+kaboom({ width: 1280, height: 720, scale: 1.3, debug: true})
 
 ////////////////////////////////////////////////////////////////
 /////////////////////////STAGE//////////////////////////////////
@@ -75,15 +75,154 @@ loadSprite("death-player2", "assets/death-player2.png", {
     sliceX: 7, sliceY: 1, anims: { "death": { from: 0, to: 6, speed: 10}}
 })
 
-scene("fight", () => {
+const socket = io.connect('http://localhost:8080');
+console.log(socket);
+
+let myPlayerNumber = null;
+let gamecounter = 0;
+
+socket.on('playerNumber', (number) => {
+    myPlayerNumber = number;
+    console.log("You are player", myPlayerNumber);
+});
+
+
+scene ("ready_up", () => {
+    
     const background = add([
         sprite("background"),
         scale(4)
-    ])
+    ]);
+    
+    background.add([
+        sprite("trees"),
+    ]);
+
+    let cen_x = 400;
+    let cen_y = 360;
+    let red = [240, 0, 0];
+    let green = [0, 240, 0];
+    // this language is completely detached from reality
+    const p1rec_red = add([
+        rect(50,50), 
+        pos(cen_x + 30 , cen_y + 95), 
+        color(red),
+        opacity(0.7)
+         
+    ]);
+    const p1rec_green = add([
+        rect(50,50), 
+        pos(cen_x + 30 , cen_y + 95), 
+        color(green),
+        opacity(0)
+         
+    ]);
+    
+    const p2rec_red = add([
+        rect(50,50), 
+        pos(cen_x + 365 , cen_y + 95), 
+        color(red),
+        opacity(0.7)
+        
+    ]);
+    const p2rec_green = add([
+        rect(50,50), 
+        pos(cen_x + 365 , cen_y + 95), 
+        color(green),
+        opacity(0)
+        
+    ]);
+
+    const starttext = add([
+        text("starting game...", 24),
+        pos(cen_x + 90, cen_y + 30),
+        scale(0.75),
+        color(1, 1, 1),
+        opacity(1) 
+    ]);
+    
+    
+    add([
+        rect(500,75), 
+        pos(cen_x - 30 , cen_y - 95), 
+        color(128, 128, 128),
+        opacity(0.7) 
+    ]);
+    
+    
+    add([
+        text("press s to ready up", 32),
+        pos(cen_x, cen_y - 80),
+        color(1, 1, 1), 
+    ]);
+
+    add([
+        scale(1.2),
+        text("player 1", 32), 
+        pos(cen_x - 230, cen_y + 100), 
+        color(1, 1, 1), 
+    ]);
+    
+    add([
+        scale(1.2),
+        text("player 2", 32),
+        pos(cen_x + 470, cen_y + 100), 
+        color(1, 1, 1), 
+    ]);
+
+    
+    let r_counter = 0;
+    onKeyPress("s", () => {
+        // i need to change this "direction"
+        //console.log("test");
+        socket.emit('ready', { direction: 'start' });   
+    });
+    
+    socket.on('ready', (data) => {
+        console.log("player:" + myPlayerNumber);
+        console.log(data.playerNumber);
+        //run right
+        if (data.playerNumber === 1) {
+            if (data.direction === 'start') {
+                console.log("player 1 ready");
+                p1rec_red.opacity = 0;
+                p1rec_green.opacity = 0.7;
+                r_counter+=1;
+
+            }
+        }
+        if (data.playerNumber === 2) {
+            if (data.direction === 'start') {
+                console.log("player 2 ready");
+                p2rec_red.opacity = 0;
+                p2rec_green.opacity = 0.7;
+                r_counter+=1;
+            }
+        }
+
+        if (r_counter == 2){
+            wait(2, () => {
+                starttext.opacity = 1;
+                console.log("starting game");
+                r_counter = 0;
+                go("fight");
+            })
+        }
+    });
+   
+
+});
+
+scene("fight", () => {
+   
+    const background = add([
+        sprite("background"),
+        scale(4)
+    ]);
 
     background.add([
         sprite("trees"),
-    ])
+    ]);
 
     const groundTiles = addLevel([
         "","","","","","","","","",
@@ -110,7 +249,7 @@ scene("fight", () => {
                 body({isStatic: true})
             ]
         }
-    })
+    });
     
     groundTiles.use(scale(4))
 
@@ -155,17 +294,10 @@ scene("fight", () => {
 /////////////////////////STAGE//////////////////////////////////
 ////////////////////////////////////////////////////////////////
 // init socket.io    
-// we might not need to put it here
-const socket = io.connect('http://localhost:8080');
-console.log(socket);
+// we might not need to put it here -- we did not need to put it here
 
 
-let myPlayerNumber = null;
 
-socket.on('playerNumber', (number) => {
-    myPlayerNumber = number;
-    console.log("You are player", myPlayerNumber);
-});
 
    //init player
 
@@ -314,36 +446,27 @@ socket.on('playerNumber', (number) => {
 
     onKeyDown("d", () => {
         socket.emit('move', { direction: 'right' });
-        
-        
-        //run(player1, 500, false);
     });
     onKeyRelease("d", () => {
         socket.emit('release', { direction: 'left' });
-        
-        
     });
 
     // move left
 
     onKeyDown("a", () => {
-        socket.emit('move', { direction: 'left' });
-        
-        //run(player1, -500, true);
+        socket.emit('move', { direction: 'left' });   
     });
     
     onKeyRelease("a", () => {
         socket.emit('release', { direction: 'left' });
-         
     });
 
+    // jump
     onKeyDown("w", () => {
         socket.emit('move', { direction: 'jump' });
-        
     });
 
     player1.onUpdate(() => resetAfterJump(player1))
-    
     player2.onUpdate(() => resetAfterJump(player2))
     
 
@@ -353,15 +476,7 @@ socket.on('playerNumber', (number) => {
         console.log("sent data");
     });
 
-    /*onKeyRelease("space", () => {
-        socket.emit('release', { direction: 'attack' });
-
-    });*/
-
-    /*socket.on('move', (data) => {
-        console.log("data recieved: " + data);
-    });*/
-
+   
     //wtf
 
     socket.on('move', (data) => {
@@ -475,6 +590,7 @@ socket.on('playerNumber', (number) => {
     ])
     
     let gameOver = false;
+    
     onKeyDown("enter", () => gameOver ? go("fight") : null);
 
     function declareWinner(winningText, player1, player2) {
@@ -485,11 +601,27 @@ socket.on('playerNumber', (number) => {
             winningText.text = "Player 1 won!";
             player2.use(sprite(player2.sprites.death));
             player2.play("death");
+            
         } else {
             winningText.text = "Player 2 won!"
             player1.use(sprite(player1.sprites.death));
             player1.play("death");
+            
         }
+        wait (3 , () => {
+            console.log(gamecounter);
+            gamecounter+=1;
+            
+            if (gamecounter > 2) {
+                go("ready_up");
+                console.log("going back to start");
+            }
+            else {
+                console.log("next game");
+                console.log(gamecounter);
+                go("fight");
+            }
+        })
     }
 
     const countInterval = setInterval(() => {
@@ -570,6 +702,6 @@ socket.on('playerNumber', (number) => {
             gameOver = true;
         }
     })
-})
+});
+go("ready_up");
 
-go("fight");
