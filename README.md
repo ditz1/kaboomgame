@@ -14,11 +14,11 @@ Attack: Space \
 
 >> git clone <repository>   
 
->> \$ cd /path/to/repo/  \
+>> cd /path/to/repo/  
 
->> node server.js \
+>> node server.js 
 
-On Browser: \
+On Browser: 
 
 >> http://localhost:8080    
 
