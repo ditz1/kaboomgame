@@ -452,6 +452,7 @@ scene("fight", () => {
 
     let player1flip = false;
     let player2flip = true;
+    let is_attacking = false;
 
     const player1 = makePlayer(200, 100, 16, 42, 4, "player1");
     player1.use(sprite(player1.sprites.idle));
@@ -462,11 +463,6 @@ scene("fight", () => {
     player2.play("idle");
     player2.flipX = player2flip;
 
-    /*var p1isattacking = false;
-    var p2isattacking = false;
-    var p1canmove = true;
-    var p2canmove = true;*/
-    //this sucks
 
 
     
@@ -485,6 +481,8 @@ scene("fight", () => {
             player2.flipX = true;
             console.log("p1 on left, p2 on right");
         }
+
+        
 
         player1flip = player1.flipX;
         player2flip = player2.flipX;
@@ -506,16 +504,6 @@ scene("fight", () => {
 
     function resetPlayerToIdle(player) {
         swapFlip();
-        /*if (myPlayerNumber == 1){
-            p1canmove = true;
-            destroyAll(player1.id + "attackHitbox");
-            p1isattacking = false;
-        }
-        if (myPlayerNumber == 2){
-            p2canmove = true;
-            destroyAll(player2.id + "attackHitbox");
-            p2isattacking = false;
-        }*/
         player.use(sprite(player.sprites.idle));
         player.play("idle");
     }
@@ -547,6 +535,7 @@ scene("fight", () => {
     }
     // attack
     function attack(player, excludedKeys) {
+        is_attacking = true;
         if (player.health === 0) {
             return;
         }
@@ -554,12 +543,19 @@ scene("fight", () => {
         for (const key of excludedKeys) {
             if (isKeyDown(key)) {
                 console.log("idk");
+                if (myPlayerNumber == 1) {
+                    console.log("glitch");
+                    destroyAll(player1.id + "attackHitbox");
+                }
+                if (myPlayerNumber == 2) {
+                    destroyAll(player2.id + "attackHitbox");
+                }
             }
         }
         
 
     
-        const currentFlip = player.flipX
+        const currentFlip = player.flipX;
         if (player.curAnim() !== "attack") {
             player.use(sprite(player.sprites.attack))
             player.flipX = currentFlip;
@@ -568,90 +564,70 @@ scene("fight", () => {
             const slashY = player.pos.y - 200;
             //let hitbox_size = [300,300];
             wait(15/60, () => {
-                add([
-                    rect(300,200),
-                    area(),
-                    pos(currentFlip ? slashXFlipped: slashX, slashY),
-                    opacity(0.5),
-                    player.id + "attackHitbox"
-                ]);
-            });
-                
-                /*if (myPlayerNumber === 1) {
-                    p1isattacking = true;
+                if(is_attacking){
+                    add ([
+                        rect(300,200),
+                        area(),
+                        pos(currentFlip ? slashXFlipped: slashX, slashY),
+                        opacity(0.5),
+                        player.id + "attackHitbox"
+                    ]);
                 }
+            });
+            if (!is_attacking) {
+                if (myPlayerNumber == 1) {
+                    destroyAll(player1.id + "attackHitbox");
+                }
+                if (myPlayerNumber == 2) {
+                    destroyAll(player2.id + "attackHitbox");
+                }
+            }
                 
-                if (myPlayerNumber === 2) {
-                    p2isattacking = true;
-                }*/
-    
+                
             player.play("attack", {
                 onEnd: () => {
                     socket.emit('release', { direction: 'attack' });
-                    /*if (myPlayerNumber === 1) {
-                        p1canmove = true;
-                    }
-                    if (myPlayerNumber === 2) {
-                        p2canmove = true;
-                    }*/
-                    //hitbox.rect = [1,1];
                     resetPlayerToIdle(player);
                     player.flipX = currentFlip;
-                    //destroyAll(player2.id + "attackHitbox");
-                    //p1isattacking = false;
+                    is_attacking = false;
+                    
                 }
             }) 
         }
     }
 
     
-
+    if (!is_attacking){
     // move right
-
     onKeyDown("d", () => {
-        //p1isattacking = false;
-        socket.emit('move', { direction: 'right' });
+            socket.emit('move', { direction: 'right' });
     });
     onKeyRelease("d", () => {
-        //p1isattacking = false;
-        socket.emit('release', { direction: 'left' });
+        socket.emit('release', { direction: 'right' });
     });
 
     // move left
-
     onKeyDown("a", () => {
-        //p1isattacking = false;
-        socket.emit('move', { direction: 'left' });   
+            socket.emit('move', { direction: 'left' });   
+        
     });
-    
     onKeyRelease("a", () => {
-        //p1isattacking = false;
         socket.emit('release', { direction: 'left' });
     });
 
+
     // jump
     onKeyDown("w", () => {
-        //p1isattacking = false;
-        socket.emit('move', { direction: 'jump' });
+            socket.emit('move', { direction: 'jump' });
     });
-
+    }
     player1.onUpdate(() => resetAfterJump(player1))
     player2.onUpdate(() => resetAfterJump(player2))
-    
-
 
     onKeyPress("space", () => {
-        //console.log(p1isattacking);
-        //console.log(p2isattacking);
-
-        if(myPlayerNumber === 1) {        
-            socket.emit('move', { direction: 'attack' });
-            console.log("sent data");
-        }
-        if(myPlayerNumber === 2) {        
-            socket.emit('move', { direction: 'attack' });
-            console.log("sent data");
-        }
+        socket.emit('move', { direction: 'attack' });
+        console.log("sent data");
+  
     });
 
    
@@ -660,48 +636,45 @@ scene("fight", () => {
     socket.on('move', (data) => {
         console.log("player:" + myPlayerNumber);
         swapFlip();
+        console.log(data.direction);
         //run right
         if (data.playerNumber === 1) {
             if (data.direction === 'right') {
-                //p1isattacking = false;
-                //destroyAll(player1.id + "attackHitbox");
                 run(player1, 500, player1flip);
+                destroyAll(player1.id + "attackHitbox");
+                is_attacking = false;
             }
         }
         if (data.playerNumber === 2) {
             if (data.direction === 'right') {
-                //p2isattacking = false;
-                //destroyAll(player2.id + "attackHitbox");
                 run(player2, 500, player2flip);
+                destroyAll(player2.id + "attackHitbox");
+                is_attacking = false;
             }
         }
         //run left
         if (data.playerNumber === 1) {
             if (data.direction === 'left') {
-                //p1isattacking = false;
-                //destroyAll(player1.id + "attackHitbox");
                 run(player1, -500, player1flip);
+                destroyAll(player1.id + "attackHitbox");
+                is_attacking = false;
             }
         }
         if (data.playerNumber === 2) {
             if (data.direction === 'left') {
-                //p2isattacking = false;
-                //destroyAll(player2.id + "attackHitbox");
                 run(player2, -500, player2flip);
+                destroyAll(player2.id + "attackHitbox");
+                is_attacking = false;
             }
         }
         //jumping
         if (data.playerNumber === 1 ) {
             if (data.direction === 'jump') {
-                //p1isattacking = false;
-                //destroyAll(player1.id + "attackHitbox");
                 makeJump(player1);
             }
         }
         if (data.playerNumber === 2 ) {
             if (data.direction === 'jump') {
-                //p2isattacking = false;
-                //(player2.id + "attackHitbox");
                 makeJump(player2);
             }
         }
@@ -709,20 +682,15 @@ scene("fight", () => {
         //attack
         if (data.playerNumber === 1) {
             if (data.direction === 'attack') {
-                //p1isattacking = true;
-                //p1canmove = false;
                 attack(player1, ["a", "d", "w"]);
             }
+            
         }
         if (data.playerNumber === 2) {
             if (data.direction === 'attack') {
-                //p2isattacking = true;
-                //p2canmove = false;
                 attack(player2, ["left", "right", "up"])
             }
         }
-
-
         
     });
     
@@ -730,36 +698,26 @@ scene("fight", () => {
         console.log("player:" + myPlayerNumber);
         console.log("released key: " + data.direction);
         swapFlip();
-        //destroyAll(player1.id + "attackHitbox");
-        //destroyAll(player2.id + "attackHitbox");
 
 
-        
         if (data.playerNumber === 1 && data.direction === 'attack') {
-            //destroyAll(player1.id + "attackHitbox");
-            //p1canmove = true;
+            destroyAll(player1.id + "attackHitbox");
         }
         if (data.playerNumber === 2 && data.direction === 'attack') {
-            //destroyAll(player2.id + "attackHitbox");
-            //p2canmove = true;
+            destroyAll(player2.id + "attackHitbox");
         }
       
         
         if (data.playerNumber === 1) {
             if (player1.health !== 0) {
                 resetPlayerToIdle(player1);
-                //destroyAll(player1.id + "attackHitbox");
-
                 player1.flipX = player1flip;
-                //p1canmove = true;
             }
         }
         if (data.playerNumber === 2) {
             if (player2.health !== 0) {
                 resetPlayerToIdle(player2);
                 player2.flipX = player2flip;
-                //destroyAll(player2.id + "attackHitbox");
-                //p2canmove = true;
             }
         }
         

@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
         
         data.playerNumber = players[socket.id].playerNumber;
         
-        if ((Object.keys(players).length) > 0) {
+        if (playercount > 0) {
             io.emit('ready', data); // Emit to all clients
             console.log("player ready");
          
