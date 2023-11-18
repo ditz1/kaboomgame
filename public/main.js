@@ -174,7 +174,7 @@ scene ("ready_up", () => {
     let r_counter = 0;
     onKeyPress("s", () => {
         // i need to change this "direction"
-        //console.log("test");
+        console.log("test");
         socket.emit('ready', { direction: 'start' });   
     });
     
@@ -462,10 +462,12 @@ scene("fight", () => {
     player2.play("idle");
     player2.flipX = player2flip;
 
-    var p1isattacking = false;
+    /*var p1isattacking = false;
     var p2isattacking = false;
     var p1canmove = true;
-    var p2canmove = true;
+    var p2canmove = true;*/
+    //this sucks
+
 
     
 
@@ -504,7 +506,7 @@ scene("fight", () => {
 
     function resetPlayerToIdle(player) {
         swapFlip();
-        if (myPlayerNumber == 1){
+        /*if (myPlayerNumber == 1){
             p1canmove = true;
             destroyAll(player1.id + "attackHitbox");
             p1isattacking = false;
@@ -513,7 +515,7 @@ scene("fight", () => {
             p2canmove = true;
             destroyAll(player2.id + "attackHitbox");
             p2isattacking = false;
-        }
+        }*/
         player.use(sprite(player.sprites.idle));
         player.play("idle");
     }
@@ -575,27 +577,27 @@ scene("fight", () => {
                 ]);
             });
                 
-                if (myPlayerNumber === 1) {
+                /*if (myPlayerNumber === 1) {
                     p1isattacking = true;
                 }
                 
                 if (myPlayerNumber === 2) {
                     p2isattacking = true;
-                }
+                }*/
     
             player.play("attack", {
                 onEnd: () => {
                     socket.emit('release', { direction: 'attack' });
-                    if (myPlayerNumber === 1) {
+                    /*if (myPlayerNumber === 1) {
                         p1canmove = true;
                     }
                     if (myPlayerNumber === 2) {
                         p2canmove = true;
-                    }
+                    }*/
                     //hitbox.rect = [1,1];
                     resetPlayerToIdle(player);
                     player.flipX = currentFlip;
-                    destroyAll(player2.id + "attackHitbox");
+                    //destroyAll(player2.id + "attackHitbox");
                     //p1isattacking = false;
                 }
             }) 
@@ -607,29 +609,29 @@ scene("fight", () => {
     // move right
 
     onKeyDown("d", () => {
-        p1isattacking = false;
+        //p1isattacking = false;
         socket.emit('move', { direction: 'right' });
     });
     onKeyRelease("d", () => {
-        p1isattacking = false;
+        //p1isattacking = false;
         socket.emit('release', { direction: 'left' });
     });
 
     // move left
 
     onKeyDown("a", () => {
-        p1isattacking = false;
+        //p1isattacking = false;
         socket.emit('move', { direction: 'left' });   
     });
     
     onKeyRelease("a", () => {
-        p1isattacking = false;
+        //p1isattacking = false;
         socket.emit('release', { direction: 'left' });
     });
 
     // jump
     onKeyDown("w", () => {
-        p1isattacking = false;
+        //p1isattacking = false;
         socket.emit('move', { direction: 'jump' });
     });
 
@@ -639,14 +641,14 @@ scene("fight", () => {
 
 
     onKeyPress("space", () => {
-        console.log(p1isattacking);
-        console.log(p2isattacking);
+        //console.log(p1isattacking);
+        //console.log(p2isattacking);
 
-        if(myPlayerNumber === 1 && !p1isattacking && p1canmove) {        
+        if(myPlayerNumber === 1) {        
             socket.emit('move', { direction: 'attack' });
             console.log("sent data");
         }
-        if(myPlayerNumber === 2 && !p2isattacking && p2canmove) {        
+        if(myPlayerNumber === 2) {        
             socket.emit('move', { direction: 'attack' });
             console.log("sent data");
         }
@@ -658,67 +660,64 @@ scene("fight", () => {
     socket.on('move', (data) => {
         console.log("player:" + myPlayerNumber);
         swapFlip();
-    
         //run right
-        if (data.playerNumber === 1 && p1canmove) {
+        if (data.playerNumber === 1) {
             if (data.direction === 'right') {
-                p1isattacking = false;
-                destroyAll(player1.id + "attackHitbox");
+                //p1isattacking = false;
+                //destroyAll(player1.id + "attackHitbox");
                 run(player1, 500, player1flip);
             }
         }
-        if (data.playerNumber === 2 && p2canmove) {
+        if (data.playerNumber === 2) {
             if (data.direction === 'right') {
-                p2isattacking = false;
-                destroyAll(player2.id + "attackHitbox");
+                //p2isattacking = false;
+                //destroyAll(player2.id + "attackHitbox");
                 run(player2, 500, player2flip);
             }
         }
-
         //run left
         if (data.playerNumber === 1) {
-            if (data.direction === 'left' && p1canmove) {
-                p1isattacking = false;
-                destroyAll(player1.id + "attackHitbox");
+            if (data.direction === 'left') {
+                //p1isattacking = false;
+                //destroyAll(player1.id + "attackHitbox");
                 run(player1, -500, player1flip);
             }
         }
         if (data.playerNumber === 2) {
-            if (data.direction === 'left' && p2canmove) {
-                p2isattacking = false;
-                destroyAll(player2.id + "attackHitbox");
+            if (data.direction === 'left') {
+                //p2isattacking = false;
+                //destroyAll(player2.id + "attackHitbox");
                 run(player2, -500, player2flip);
             }
         }
-
         //jumping
-        if (data.playerNumber === 1 && p1canmove) {
+        if (data.playerNumber === 1 ) {
             if (data.direction === 'jump') {
-                p1isattacking = false;
-                destroyAll(player1.id + "attackHitbox");
+                //p1isattacking = false;
+                //destroyAll(player1.id + "attackHitbox");
                 makeJump(player1);
             }
         }
-        if (data.playerNumber === 2 && p2canmove) {
+        if (data.playerNumber === 2 ) {
             if (data.direction === 'jump') {
-                p2isattacking = false;
-                destroyAll(player2.id + "attackHitbox");
+                //p2isattacking = false;
+                //(player2.id + "attackHitbox");
                 makeJump(player2);
             }
         }
 
         //attack
         if (data.playerNumber === 1) {
-            if (data.direction === 'attack' && !p1isattacking) {
-                p1isattacking = true;
-                p1canmove = false;
+            if (data.direction === 'attack') {
+                //p1isattacking = true;
+                //p1canmove = false;
                 attack(player1, ["a", "d", "w"]);
             }
         }
-        if (data.playerNumber === 2 && !p2isattacking) {
+        if (data.playerNumber === 2) {
             if (data.direction === 'attack') {
-                p2isattacking = true;
-                p2canmove = false;
+                //p2isattacking = true;
+                //p2canmove = false;
                 attack(player2, ["left", "right", "up"])
             }
         }
@@ -731,36 +730,36 @@ scene("fight", () => {
         console.log("player:" + myPlayerNumber);
         console.log("released key: " + data.direction);
         swapFlip();
-        destroyAll(player1.id + "attackHitbox");
-        destroyAll(player2.id + "attackHitbox");
+        //destroyAll(player1.id + "attackHitbox");
+        //destroyAll(player2.id + "attackHitbox");
 
 
         
         if (data.playerNumber === 1 && data.direction === 'attack') {
-            destroyAll(player1.id + "attackHitbox");
-            p1canmove = true;
+            //destroyAll(player1.id + "attackHitbox");
+            //p1canmove = true;
         }
         if (data.playerNumber === 2 && data.direction === 'attack') {
-            destroyAll(player2.id + "attackHitbox");
-            p2canmove = true;
+            //destroyAll(player2.id + "attackHitbox");
+            //p2canmove = true;
         }
       
         
         if (data.playerNumber === 1) {
             if (player1.health !== 0) {
                 resetPlayerToIdle(player1);
-                destroyAll(player1.id + "attackHitbox");
+                //destroyAll(player1.id + "attackHitbox");
 
                 player1.flipX = player1flip;
-                p1canmove = true;
+                //p1canmove = true;
             }
         }
         if (data.playerNumber === 2) {
             if (player2.health !== 0) {
                 resetPlayerToIdle(player2);
                 player2.flipX = player2flip;
-                destroyAll(player2.id + "attackHitbox");
-                p2canmove = true;
+                //destroyAll(player2.id + "attackHitbox");
+                //p2canmove = true;
             }
         }
         
