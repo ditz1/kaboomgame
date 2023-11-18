@@ -26,21 +26,15 @@ io.on('connection', (socket) => {
 
     // Inform the player of their number
     socket.emit('playerNumber', playerNumber);
-    socket.on('ready', (data) => {
-        data.playerNumber = players[socket.id].playerNumber;
-        if ((Object.keys(players).length) > 0) {
-            io.emit('ready', data); // Emit to all clients
-            console.log("player ready");
-        }
-        
-    });
+     
+    
     socket.on('move', (data) => {
         
         data.playerNumber = players[socket.id].playerNumber;
         
         if ((Object.keys(players).length) > 1) {
             io.emit('move', data); // Emit to all clients
-            console.log("player move");
+            console.log("playermove");
         } else {
             data = "wait until the other player connects";
             io.emit("wait", data);
@@ -53,7 +47,7 @@ io.on('connection', (socket) => {
         
         if ((Object.keys(players).length) > 1) {
             io.emit('release', data); // Emit to all clients
-            console.log("released key");
+            console.log("releasedkey");
         } else {
             data = "wait until the other player connects";
             io.emit("wait", data);
