@@ -33,7 +33,7 @@ if the index.html is hosted on the same ip
 
 ## made with kaboom.js ##
 
-## TEMPLATE FROM ##
+# TEMPLATE FROM #
 
 - JavaScript Fighting Game Tutorial Made Simpler w/ Kaboom.js (https://www.youtube.com/watch?v=TLH0taCeE6I)
 
