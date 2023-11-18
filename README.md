@@ -12,11 +12,15 @@ Attack: Space \
 ## To start server ##
 - must have node.js  
 
-> git clone <repository>   
-> cd /path/to/repo/  \
-> node server.js \
+>> git clone <repository>   
+
+\> cd /path/to/repo/  \
+
+>> node server.js \
+
 On Browser: \
-> http://localhost:8080    
+
+>> http://localhost:8080    
 
 Players 1 and 2 must join for the game to start, \
 and both players must **EXIT** the page in order to   
