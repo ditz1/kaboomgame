@@ -1,14 +1,14 @@
 //ditz1
 
 const express = require('express');
-const http = require('http');
 const app = express();
+const http = require('http');
 const server = http.createServer(app);
 
 const socketIo = require('socket.io');
 const io = socketIo(server);
 
-app.use(express.static('public'));
+app.use('/static', express.static('public'));
 
 let players = {}; // Stores player data
 let playercount = 0;
