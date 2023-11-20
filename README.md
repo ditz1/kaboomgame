@@ -9,8 +9,12 @@ Jump: W \
 Attack: Space \
 **WIP** 
 
+### must have nodejs to run local version###
+**web demo todo**
+
+
 ## To start server ##
-- must have node.js  
+>> npm install express socket.io  
 
 >> git clone <repository>   
 
@@ -20,7 +24,10 @@ Attack: Space \
 
 On Browser: 
 
->> http://localhost:8080    
+>> http://localhost:8080
+
+**is currently configured for CORS with reverse proxy**
+
 
 Players 1 and 2 must join for the game to start, \
 and both players must **EXIT** the page in order to   
@@ -31,21 +38,23 @@ localhost with port forwarded ip will work  \
 if the index.html is hosted on the same ip 
 
 
-## made with kaboom.js ##
+## kaboom.js ##
+<https://kaboomjs.com/>
 
-# TEMPLATE FROM #
+## socket.io ##
+<https://socket.io/>
+
+### TEMPLATE FROM ###
 
 - JavaScript Fighting Game Tutorial Made Simpler w/ Kaboom.js (https://www.youtube.com/watch?v=TLH0taCeE6I)
 
-# Original Base Assets #
+### Original Base Assets ###
 
 - Oak Woods Assets: https://brullov.itch.io/oak-woods
 
 - Fighter Asset #1: https://luizmelo.itch.io/martial-hero
 
 - Fighter Asset #2: https://luizmelo.itch.io/martial-hero-2
-
-- Link for demo: https://jslegend.itch.io/fighting-game-tutorial-kaboomjs
 
 ### MIT ###
 Copyright <2023> Daniel Itzler
