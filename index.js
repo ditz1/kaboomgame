@@ -1,125 +1,85 @@
-//ditz1
-
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
-//app.use(cors());
+const path = require('path');
 
-const io = require("socket.io")(server,  {
-  cors: {
-    origin: "http://localhost:8008",
-    methods: ["GET", "POST"],
-    credentials: true
-  }
+const io = require("socket.io")(server, {
+    cors: {
+        origin: "http://localhost:8008",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
 });
 
 app.use('/static', express.static('public'));
 
-let players = {}; // Stores player data
-//var playercount = 0;
+let games = {}; // Stores player data for each game
+
+app.get('/static/:game_id', (req, res) => {
+    const game_id = req.params.game_id;
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 io.on('connection', (socket) => {
-    // Assign player number
+    const game_id = socket.handshake.query.game_id;
+    if (!games[game_id]) {
+        games[game_id] = {};
+    }
+    socket.join(game_id);
+
     console.log("ws connection started: " + socket.id);
-    const availableNumber = getAvailablePlayerNumber();
-    players[socket.id] = { playerNumber: availableNumber };
+    const availableNumber = getAvailablePlayerNumber(game_id);
+    games[game_id][socket.id] = { playerNumber: availableNumber };
 
     console.log(`Player connected: ${socket.id} as Player ${availableNumber}`);
-    //playercount++;
     socket.emit('playerNumber', availableNumber);
 
-    var playerNumber = Object.keys(players).length;
-    //playercount++;
-    //console.log("players: " + playercount);
-    //if (playerNumber > 2) playerNumber = null; // Limit to 2 players
-   
-    
-    //players[socket.id] = { playerNumber };
-
-    // Inform the player of their number
-    //socket.emit('playerNumber', playerNumber);
     socket.on('ready', (data) => {
-        
-        data.playerNumber = players[socket.id].playerNumber;
-        
-        if (playerNumber > 1) {
-            io.emit('ready', data); // Emit to all clients
-            console.log("player ready");
-         
-        } else {
-            console.log("only 1 connected")
-        }
+        data.playerNumber = games[game_id][socket.id].playerNumber;
+        io.to(game_id).emit('ready', data); // Emit only to clients in the same game room
+        console.log("player ready up in game " + game_id);
     });
-    
+
     socket.on('gamestate', (data) => {
-        
-        data.playerNumber = players[socket.id].playerNumber;
-        
-        if (playerNumber > 0) {
-            io.emit('state', data); // Emit to all clients
-            console.log("hp change");
-         
-        }
+        data.playerNumber = games[game_id][socket.id].playerNumber;
+        io.to(game_id).emit('state', data); // Emit only to clients in the same game room
+        console.log("game state changed in game " + game_id);
     });
 
-
-    
     socket.on('move', (data) => {
-        
-        data.playerNumber = players[socket.id].playerNumber;
-        
-        if ((Object.keys(players).length) > 1) {
-            io.emit('move', data); // Emit to all clients
-            //console.log("playermove");
-        } else {
-            data = "wait until the other player connects";
-            io.emit("wait", data);
-        }
-        
+        data.playerNumber = games[game_id][socket.id].playerNumber;
+        io.to(game_id).emit('move', data); // Emit only to clients in the same game room
     });
+
     socket.on('release', (data) => {
-        
-        data.playerNumber = players[socket.id].playerNumber;
-        
-        if ((Object.keys(players).length) > 1) {
-            io.emit('release', data); // Emit to all clients
-            console.log("releasedkey");
-        } else {
-            data = "wait until the other player connects";
-            io.emit("wait", data);
-        }
+        data.playerNumber = games[game_id][socket.id].playerNumber;
+        io.to(game_id).emit('release', data); // Emit only to clients in the same game room
     });
-    
-    
+
     socket.on('disconnect', () => {
-        console.log("player dc : ${socket.id}");
-        delete players[socket.id];
-        //playercount--;
-        updatePlayerNumbers();
-        //socket.emit('playerNumber', playerNumber);
-        console.log("players left: " + playerNumber);
-        
+        console.log(`Player disconnected: ${socket.id} from game ${game_id}`);
+        delete games[game_id][socket.id];
+        updatePlayerNumbers(game_id);
     });
 });
 
-function getAvailablePlayerNumber() {
-    let playerNumbers = new Set(Object.values(players).map(p => p.playerNumber));
+function getAvailablePlayerNumber(game_id) {
+    let playerNumbers = new Set(Object.values(games[game_id]).map(p => p.playerNumber));
     let playerNumber = 1;
     while (playerNumbers.has(playerNumber)) {
       playerNumber++;
     }
     return playerNumber;
-  }
-  
-  function updatePlayerNumbers() {
-    let playerNumber = 1;
-    for (let id in players) {
-      players[id].playerNumber = playerNumber++;
-      io.to(id).emit('playerNumber', players[id].playerNumber);
-    }
-  }
+}
 
+function updatePlayerNumbers(game_id) {
+    let playerNumber = 1;
+    for (let id in games[game_id]) {
+        games[game_id][id].playerNumber = playerNumber++;
+        io.to(id).emit('playerNumber', games[game_id][id].playerNumber);
+    }
+}
 
 server.listen(8080, () => {
     console.log('Server is running on port 8080');

@@ -110,10 +110,11 @@ loadSprite("death-player2", "assets/death-player2.png", {
 // peace of mind
 // looking for the answer...
 
-
+const game_id = "1";
 //const io = require('socket.io-client');
 const socket = io.connect('http://localhost:8080', {
-  withCredentials: true
+  withCredentials: true,
+  query: { game_id : game_id}
 });
 console.log(socket);
 
@@ -214,7 +215,7 @@ scene ("ready_up", () => {
     onKeyPress("s", () => {
         // i need to change this "direction"
         console.log("test");
-        socket.emit('ready', { direction: 'start' });   
+        socket.emit('ready', { game_id: game_id, direction: 'start' });   
     });
     
     socket.on('ready', (data) => {
@@ -340,7 +341,7 @@ scene ("end", () => {
     onKeyPress("s", () => {
         // i need to change this "direction"
         //console.log("test");
-        socket.emit('ready', { direction: 'start' });   
+        socket.emit('ready', { game_id: game_id, direction: 'start' });   
     });
     
     socket.on('ready', (data) => {
@@ -625,7 +626,7 @@ scene("fight", () => {
                 
             player.play("attack", {
                 onEnd: () => {
-                    socket.emit('release', { direction: 'attack' });
+                    socket.emit('release', {game_id: game_id, direction: 'attack' });
                     resetPlayerToIdle(player);
                     player.flipX = currentFlip;
                     is_attacking = false;
@@ -639,33 +640,33 @@ scene("fight", () => {
     if (!is_attacking){
     // move right
     onKeyDown("d", () => {
-            socket.emit('move', { direction: 'right' });
+            socket.emit('move', { game_id: game_id, direction: 'right' });
             console.log("client pressed d");
     });
     onKeyRelease("d", () => {
-        socket.emit('release', { direction: 'right' });
+        socket.emit('release', { game_id: game_id, direction: 'right' });
     });
 
     // move left
     onKeyDown("a", () => {
-            socket.emit('move', { direction: 'left' });   
+            socket.emit('move', { game_id: game_id, direction: 'left' });   
         
     });
     onKeyRelease("a", () => {
-        socket.emit('release', { direction: 'left' });
+        socket.emit('release', { game_id: game_id, direction: 'left' });
     });
 
 
     // jump
     onKeyDown("w", () => {
-            socket.emit('move', { direction: 'jump' });
+            socket.emit('move', { game_id: game_id, direction: 'jump' });
     });
     }
     player1.onUpdate(() => resetAfterJump(player1))
     player2.onUpdate(() => resetAfterJump(player2))
 
     onKeyPress("space", () => {
-        socket.emit('move', { direction: 'attack' });
+        socket.emit('move', { game_id: game_id, direction: 'attack' });
         console.log("sent data");
   
     });
@@ -848,7 +849,7 @@ scene("fight", () => {
         if (count.timeLeft === 0) {
             clearInterval(countInterval);
             declareWinner(winningText, player1, player2);
-            socket.emit('gamestate', {direction: 'p2win'});
+            socket.emit('gamestate', { game_id: game_id, direction: 'p2win'});
             gameOver = true;
     
             return;
@@ -895,11 +896,11 @@ scene("fight", () => {
         }
         
         if (player1.health !== 0) {
-            socket.emit('gamestate', {direction: 'p1l'});  
+            socket.emit('gamestate', { game_id: game_id, direction: 'p1l'});  
         }
         
         if (player1.health === 0) {
-            socket.emit('gamestate', {direction: 'p2win'});
+            socket.emit('gamestate', { game_id: game_id, direction: 'p2win'});
         }
     });
 
@@ -910,11 +911,11 @@ scene("fight", () => {
             return;
         }
         if (player2.health !== 0) {            
-            socket.emit('gamestate', {direction: 'p2l'});
+            socket.emit('gamestate', {game_id: game_id, direction: 'p2l'});
         } 
         
         if (player2.health === 0) {
-            socket.emit('gamestate', {direction: 'p1win'});
+            socket.emit('gamestate', {game_id: game_id, direction: 'p1win'});
         }
     });
 });
