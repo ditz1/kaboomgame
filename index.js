@@ -93,6 +93,7 @@ io.on('connection', (socket) => {
             console.log(`Player disconnected: ${socket.id} from game ${game_id}`);
             delete games[game_id][socket.id];
             if (Object.keys(games[game_id]).length === 0) {
+                console.log("game: " + game_id + " closed");
                 delete games[game_id]; // Remove the game if no players are connected
             } else {
                 updatePlayerNumbers(game_id);
