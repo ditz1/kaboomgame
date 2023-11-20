@@ -636,7 +636,7 @@ scene("fight", () => {
 
    
     //state control
-    socket.on("state", (data) => {
+    socket.on('state', (data) => {
         
         if (data.direction === 'p1win') {
             console.log("game over - p1 win");
@@ -654,7 +654,7 @@ scene("fight", () => {
 
         if (data.direction === 'p1l' && !gameOver) {
             console.log("p1 lost health");
-            socket.emit('hp', {direction: 'p1l'}); 
+            player1.health -= 50;
             tween(player1HealthBar.width, player1.health, 1, (val) => {
                 player1HealthBar.width = val;
             }, easings.easeOutSine)
@@ -812,13 +812,14 @@ scene("fight", () => {
         if (count.timeLeft === 0) {
             clearInterval(countInterval);
             declareWinner(winningText, player1, player2);
+            socket.emit('gamestate', {direction: 'p2win'});
             gameOver = true;
     
             return;
         }
         count.timeLeft--;
         count.text = count.timeLeft;
-    }, 1000)
+        }, 1000);
 
     const player1HealthContainer = add([
         rect(500, 70),
@@ -826,35 +827,14 @@ scene("fight", () => {
         outline(5),
         pos(90, 20),
         color(200,0,0)
-       ])
+       ]);
        
     const player1HealthBar = player1HealthContainer.add([
         rect(498, 65),
         color(0,180,0),
         pos(498, 70 - 2.5),
         rotate(180)
-    ])
-
-    player1.onCollide(player2.id + "attackHitbox", () => {
-        if (gameOver) {
-            return;
-        }
-        
-        if (player1.health !== 0) {
-            player1.health -= 50;
-            socket.emit('hp', {direction: 'p1l'}); 
-            /*tween(player1HealthBar.width, player1.health, 1, (val) => {
-                player1HealthBar.width = val;
-            }, easings.easeOutSine)*/ 
-        }
-        
-        if (player1.health === 0) {
-            socket.emit('gamestate', {direction: 'p2win'});
-            /*clearInterval(countInterval);
-            declareWinner(winningText, player1, player2);
-            gameOver = true;*/
-        }
-    })
+    ]);
 
     const player2HealthContainer = add([
         rect(500, 70),
@@ -862,34 +842,45 @@ scene("fight", () => {
         outline(5),
         pos(690, 20),
         color(200,0,0)
-    ])
+    ]);
        
     const player2HealthBar = player2HealthContainer.add([
         rect(498, 65),
         color(0,180,0),
         pos(2.5, 2.5),
-    ])
+    ]);
+
+
+
+
+    player1.onCollide(player2.id + "attackHitbox", () => {
+        if (gameOver) {
+            return;
+        }
+        
+        if (player1.health !== 0) {
+            socket.emit('gamestate', {direction: 'p1l'});  
+        }
+        
+        if (player1.health === 0) {
+            socket.emit('gamestate', {direction: 'p2win'});
+        }
+    });
+
+    
     
     player2.onCollide(player1.id + "attackHitbox", () => {
         if (gameOver) {
             return;
         }
-        
-        if (player2.health !== 0) {
-            socket.emit('gamestate', {direction: 'p2l'}); 
-            /*player2.health -= 50;
-            tween(player2HealthBar.width, player2.health, 1, (val) => {
-                player2HealthBar.width = val;
-            }, easings.easeOutSine)*/ 
+        if (player2.health !== 0) {            
+            socket.emit('gamestate', {direction: 'p2l'});
         } 
         
         if (player2.health === 0) {
             socket.emit('gamestate', {direction: 'p1win'});
-            /*clearInterval(countInterval);
-            declareWinner(winningText, player1, player2);
-            gameOver = true;*/
         }
-    })
+    });
 });
 go("ready_up");
 
