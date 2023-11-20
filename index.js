@@ -4,9 +4,15 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
+//app.use(cors());
 
-const socketIo = require('socket.io');
-const io = socketIo(server);
+const io = require("socket.io")(server,  {
+  cors: {
+    origin: "http://localhost:8008",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
 app.use('/static', express.static('public'));
 

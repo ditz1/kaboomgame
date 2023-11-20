@@ -75,7 +75,10 @@ loadSprite("death-player2", "assets/death-player2.png", {
     sliceX: 7, sliceY: 1, anims: { "death": { from: 0, to: 6, speed: 10}}
 })
 
-const socket = io.connect('http://localhost:8080');
+//const io = require('socket.io-client');
+const socket = io.connect('http://localhost:8080', {
+  withCredentials: true
+});
 console.log(socket);
 
 let myPlayerNumber = null;
@@ -601,6 +604,7 @@ scene("fight", () => {
     // move right
     onKeyDown("d", () => {
             socket.emit('move', { direction: 'right' });
+            console.log("client pressed d");
     });
     onKeyRelease("d", () => {
         socket.emit('release', { direction: 'right' });
@@ -640,6 +644,7 @@ scene("fight", () => {
         //run right
         if (data.playerNumber === 1) {
             if (data.direction === 'right') {
+                console.log("server responded d");
                 run(player1, 500, player1flip);
                 destroyAll(player1.id + "attackHitbox");
                 is_attacking = false;
@@ -647,6 +652,7 @@ scene("fight", () => {
         }
         if (data.playerNumber === 2) {
             if (data.direction === 'right') {
+                console.log("server responded d");
                 run(player2, 500, player2flip);
                 destroyAll(player2.id + "attackHitbox");
                 is_attacking = false;
