@@ -110,23 +110,28 @@ loadSprite("death-player2", "assets/death-player2.png", {
 // peace of mind
 // looking for the answer...
 
-const game_id = "1";
-//const io = require('socket.io-client');
-const socket = io.connect('http://localhost:8080', {
-  withCredentials: true,
-  query: { game_id : game_id}
-});
-console.log(socket);
+// thank you brendan eich for making the most popular language terrible
+var gamecounter = 0;
+var myPlayerNumber = 0;
+var new_game_id;
+var socket;
+var game_id;
+//let game_id;
+/*function getGameIdFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('game_id');
+}*/
 
-let myPlayerNumber = 0;
-let gamecounter = 0;
+// Start the process
+console.log("#-------DEBUG------#");
+console.log("new game: " + game_id);
+console.log("socket: " + socket);
 
-socket.on('playerNumber', (playerNumber) => {
+
+/*socket.on('playerNumber', (playerNumber) => {
     myPlayerNumber = playerNumber; 
     console.log("You are player", myPlayerNumber);
-});
-
-
+});*/
 scene ("ready_up", () => {
     
     const background = add([
@@ -190,7 +195,7 @@ scene ("ready_up", () => {
     ]);
     
     
-    add([
+    const title = add([
         text("press s to ready up", 32),
         pos(cen_x, cen_y - 80),
         color(1, 1, 1), 
@@ -210,46 +215,89 @@ scene ("ready_up", () => {
         color(1, 1, 1), 
     ]);
 
-    
-    let r_counter = 0;
-    onKeyPress("s", () => {
-        // i need to change this "direction"
-        console.log("test");
-        socket.emit('ready', { game_id: game_id, direction: 'start' });   
-    });
-    
-    socket.on('ready', (data) => {
-        console.log("player:" + myPlayerNumber);
-        console.log(data.playerNumber);
-        //run right
-        if (data.playerNumber === 1) {
-            if (data.direction === 'start') {
-                console.log("player 1 ready");
-                p1rec_red.opacity = 0;
-                p1rec_green.opacity = 0.7;
-                r_counter+=1;
-
-            }
-        }
-        if (data.playerNumber === 2) {
-            if (data.direction === 'start') {
-                console.log("player 2 ready");
-                p2rec_red.opacity = 0;
-                p2rec_green.opacity = 0.7;
-                r_counter+=1;
-            }
-        }
-
-        if (r_counter == 2){
-            starttext.opacity = 1.0;
-            wait(2, () => {
-                console.log("starting game");
-                r_counter = 0;
-                go("fight");
-            })
-        }
-    });
+    console.log("up to here");
+    title.text = "send link to friend to join";
    
+   
+    // there is probably already methods called connect so will just use this
+    var socket;
+    var myPlayerNumber = 0;
+    var game_id;
+    function getGameID() {
+        return fetch(`http://localhost:8008/newgame`)
+            .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
+            .then(data => {
+                console.log("game id: " + data.game_id)
+                return data.game_id;
+        });
+    }
+
+    async function connectshab() {
+        //const game_id = new URLSearchParams(window.location.search).get('game_id');
+        console.log("connect shab");
+        game_id = await getGameID();
+
+        if (game_id != null) {
+            let r_counter = 0;
+            socket = io.connect(`http://localhost:8008/`, {
+                withCredentials: true,
+                query: { game_id: game_id }
+            });
+
+            socket.on('playerNumber', (playerNumber) => {
+                myPlayerNumber = playerNumber;
+                console.log("You are player", myPlayerNumber);
+                });
+        
+            onKeyPress("s", () => {
+                // i need to change this "direction"
+                console.log("test");
+                socket.emit('ready', { game_id: game_id, direction: 'start' });   
+            });
+        
+            socket.on('ready', (data) => {
+                console.log("player:" + myPlayerNumber);
+                console.log(data.playerNumber);
+                // run right
+                if (data.playerNumber === 1) {
+                    if (data.direction === 'start') {
+                        console.log("player 1 ready");
+                        p1rec_red.opacity = 0;
+                        p1rec_green.opacity = 0.7;
+                        r_counter+=1;
+        
+                    }
+                }
+                if (data.playerNumber === 2) {
+                    if (data.direction === 'start') {
+                        console.log("player 2 ready");
+                        p2rec_red.opacity = 0;
+                        p2rec_green.opacity = 0.7;
+                        r_counter+=1;
+                    }
+                }
+        
+                if (r_counter == 2){
+                    starttext.opacity = 1.0;
+                        wait(2, () => {
+                            console.log("starting game");
+                            r_counter = 0;
+                            go("fight");
+                    })
+                }
+            });
+        // Add other socket event listeners here
+        } else {
+            console.log("error getting game id");
+        }
+    }
+
+    //window.addEventListener('load', connectshab);
+    console.log("test");
+    
+    console.log("but not here");
+    connectshab();
+    
 
 });
 
@@ -919,5 +967,6 @@ scene("fight", () => {
         }
     });
 });
+
 go("ready_up");
 

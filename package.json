@@ -12,6 +12,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "kaboom": "^3000.1.17",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.1"
   }
 }
