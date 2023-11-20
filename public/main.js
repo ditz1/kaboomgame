@@ -1,4 +1,4 @@
-//game init
+//game init //do do doooo do do doooo
 kaboom({ width: 1280, height: 720, scale: 1.3, debug: true})
 
 ////////////////////////////////////////////////////////////////
@@ -43,6 +43,8 @@ loadSprite("shop", "assets/shop_anim.png", {
 loadSprite("fence", "assets/fence_1.png")
 loadSprite("sign", "assets/sign.png")
 
+
+//----------------------PLAYER 1 ASSETS----------------------//
 loadSprite("idle-player1", "assets/idle-player1.png", {
     sliceX: 8, sliceY: 1, anims: { "idle": {from: 0, to: 7, speed: 12, loop: true}}
 })
@@ -59,6 +61,27 @@ loadSprite("death-player1", "assets/death-player1.png", {
     sliceX: 6, sliceY: 1, anims: { "death": { from: 0, to: 5, speed: 10}}
 })
 
+//----------------------PLAYER 2 ASSETS----------------------//
+loadSprite("idle-player2", "assets/idle-player2.png", {
+    sliceX: 8, sliceY: 1, anims: { "idle": {from: 0, to: 7, speed: 12, loop: true}}
+})
+loadSprite("jump-player2", "assets/jump-player2.png", {
+    sliceX: 2, sliceY: 1, anims: { "jump": { from: 0, to: 1, speed: 2, loop: true}}
+})
+loadSprite("attack-player2", "assets/attack-player2.png", {
+    sliceX: 6, sliceY: 1, anims: { "attack": { from: 1, to: 5, speed: 18}}
+})
+loadSprite("run-player2", "assets/run-player2.png", {
+    sliceX: 8, sliceY: 1, anims: { "run": { from: 0, to: 7, speed: 18}}
+})
+loadSprite("death-player2", "assets/death-player2.png", {
+    sliceX: 6, sliceY: 1, anims: { "death": { from: 0, to: 5, speed: 10}}
+})
+
+
+//#####################################################################//
+//old player 2
+/*
 loadSprite("idle-player2", "assets/idle-player2.png", {
     sliceX: 4, sliceY: 1, anims: { "idle": { from: 0, to: 3, speed: 8, loop: true}}
 })
@@ -74,6 +97,19 @@ loadSprite("run-player2", "assets/run-player2.png", {
 loadSprite("death-player2", "assets/death-player2.png", {
     sliceX: 7, sliceY: 1, anims: { "death": { from: 0, to: 6, speed: 10}}
 })
+*/
+//#####################################################################//
+
+
+
+
+// you can drive
+// all night
+// looking for the answers in the pouring rain
+// you wanna find
+// peace of mind
+// looking for the answer...
+
 
 //const io = require('socket.io-client');
 const socket = io.connect('http://localhost:8080', {
@@ -461,7 +497,7 @@ scene("fight", () => {
     player1.use(sprite(player1.sprites.idle));
     player1.play("idle");
 
-    const player2 = makePlayer(1000, 200, 16, 52, 4, "player2");
+    const player2 = makePlayer(1000, 200, 16, 42, 4, "player2");
     player2.use(sprite(player2.sprites.idle));
     player2.play("idle");
     player2.flipX = player2flip;
