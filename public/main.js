@@ -81,11 +81,11 @@ const socket = io.connect('http://localhost:8080', {
 });
 console.log(socket);
 
-let myPlayerNumber = null;
+let myPlayerNumber = 0;
 let gamecounter = 0;
 
-socket.on('playerNumber', (number) => {
-    myPlayerNumber = number;
+socket.on('playerNumber', (playerNumber) => {
+    myPlayerNumber = playerNumber; 
     console.log("You are player", myPlayerNumber);
 });
 
@@ -635,69 +635,85 @@ scene("fight", () => {
     });
 
    
-    //wtf
+    //state control
+    socket.on("state", (data) => {
+        
+        if (data.direction === 'p1win') {
+            console.log("game over - p1 win");
+            clearInterval(countInterval);
+            declareWinner(winningText, player1, player2);
+            gameOver = true;
+        }
+
+        if (data.direction === 'p2win') {
+            console.log("game over - p2 win");
+            clearInterval(countInterval);
+            declareWinner(winningText, player1, player2);
+            gameOver = true;
+        }
+
+        if (data.direction === 'p1l' && !gameOver) {
+            console.log("p1 lost health");
+            socket.emit('hp', {direction: 'p1l'}); 
+            tween(player1HealthBar.width, player1.health, 1, (val) => {
+                player1HealthBar.width = val;
+            }, easings.easeOutSine)
+        }
+
+        if (data.direction === 'p2l' && !gameOver) {
+            console.log("p2 lost health ");
+            player2.health -= 50;
+            tween(player2HealthBar.width, player2.health, 1, (val) => {
+                player2HealthBar.width = val;
+            }, easings.easeOutSine)
+        }
+        
+    });
 
     socket.on('move', (data) => {
         console.log("player:" + myPlayerNumber);
         swapFlip();
         console.log(data.direction);
         //run right
-        if (data.playerNumber === 1) {
-            if (data.direction === 'right') {
+        if (data.playerNumber === 1 && data.direction === 'right') {
                 console.log("server responded d");
                 run(player1, 500, player1flip);
                 destroyAll(player1.id + "attackHitbox");
                 is_attacking = false;
-            }
         }
-        if (data.playerNumber === 2) {
-            if (data.direction === 'right') {
+        if (data.playerNumber === 2 && data.direction === 'right') {
                 console.log("server responded d");
                 run(player2, 500, player2flip);
                 destroyAll(player2.id + "attackHitbox");
                 is_attacking = false;
-            }
         }
         //run left
-        if (data.playerNumber === 1) {
-            if (data.direction === 'left') {
+        if (data.playerNumber === 1 && data.direction === 'left') {
                 run(player1, -500, player1flip);
                 destroyAll(player1.id + "attackHitbox");
                 is_attacking = false;
-            }
         }
-        if (data.playerNumber === 2) {
-            if (data.direction === 'left') {
+        if (data.playerNumber === 2 && data.direction === 'left') {
                 run(player2, -500, player2flip);
                 destroyAll(player2.id + "attackHitbox");
                 is_attacking = false;
-            }
         }
         //jumping
-        if (data.playerNumber === 1 ) {
-            if (data.direction === 'jump') {
+        if (data.playerNumber === 1 && data.direction === 'jump' ) {
                 makeJump(player1);
-            }
         }
-        if (data.playerNumber === 2 ) {
-            if (data.direction === 'jump') {
+        if (data.playerNumber === 2 && data.direction === 'jump' ) {
                 makeJump(player2);
-            }
         }
 
         //attack
-        if (data.playerNumber === 1) {
-            if (data.direction === 'attack') {
+        if (data.playerNumber === 1 && data.direction === 'attack') {
                 attack(player1, ["a", "d", "w"]);
-            }
             
         }
-        if (data.playerNumber === 2) {
-            if (data.direction === 'attack') {
+        if (data.playerNumber === 2 && data.direction === 'attack') {
                 attack(player2, ["left", "right", "up"])
-            }
-        }
-        
+        }        
     });
     
     socket.on('release', (data) => {
@@ -826,15 +842,17 @@ scene("fight", () => {
         
         if (player1.health !== 0) {
             player1.health -= 50;
-            tween(player1HealthBar.width, player1.health, 1, (val) => {
+            socket.emit('hp', {direction: 'p1l'}); 
+            /*tween(player1HealthBar.width, player1.health, 1, (val) => {
                 player1HealthBar.width = val;
-            }, easings.easeOutSine) 
-        } 
+            }, easings.easeOutSine)*/ 
+        }
         
         if (player1.health === 0) {
-            clearInterval(countInterval);
+            socket.emit('gamestate', {direction: 'p2win'});
+            /*clearInterval(countInterval);
             declareWinner(winningText, player1, player2);
-            gameOver = true;
+            gameOver = true;*/
         }
     })
 
@@ -858,16 +876,18 @@ scene("fight", () => {
         }
         
         if (player2.health !== 0) {
-            player2.health -= 50;
+            socket.emit('gamestate', {direction: 'p2l'}); 
+            /*player2.health -= 50;
             tween(player2HealthBar.width, player2.health, 1, (val) => {
                 player2HealthBar.width = val;
-            }, easings.easeOutSine) 
+            }, easings.easeOutSine)*/ 
         } 
         
         if (player2.health === 0) {
-            clearInterval(countInterval);
+            socket.emit('gamestate', {direction: 'p1win'});
+            /*clearInterval(countInterval);
             declareWinner(winningText, player1, player2);
-            gameOver = true;
+            gameOver = true;*/
         }
     })
 });
