@@ -114,7 +114,7 @@ loadSprite("death-player2", "assets/death-player2.png", {
 var gamecounter = 0;
 var myPlayerNumber = 0;
 var new_game_id;
-var socket;
+var globalsocket;
 var game_id;
 //let game_id;
 /*function getGameIdFromURL() {
@@ -125,13 +125,18 @@ var game_id;
 // Start the process
 console.log("#-------DEBUG------#");
 console.log("new game: " + game_id);
-console.log("socket: " + socket);
+//console.log("socket: " + socket);
 
 
 /*socket.on('playerNumber', (playerNumber) => {
     myPlayerNumber = playerNumber; 
     console.log("You are player", myPlayerNumber);
 });*/
+
+////////////////////////////
+//////// ready up //////////
+////////////////////////////
+
 scene ("ready_up", () => {
     
     const background = add([
@@ -148,101 +153,58 @@ scene ("ready_up", () => {
     let red = [240, 0, 0];
     let green = [0, 240, 0];
     // this language is completely detached from reality
-    const p1rec_red = add([
-        rect(50,50), 
-        pos(cen_x + 30 , cen_y + 95), 
-        color(red),
-        opacity(0.7)
-         
-    ]);
-    const p1rec_green = add([
-        rect(50,50), 
-        pos(cen_x + 30 , cen_y + 95), 
-        color(green),
-        opacity(0)
-         
-    ]);
+    const p1rec_red = add([ rect(50,50), pos(cen_x + 30 , cen_y + 95), color(red), opacity(0.7) ]);
+    const p1rec_green = add([rect(50,50), pos(cen_x + 30 , cen_y + 95), color(green), opacity(0) ]);
+    const p2rec_red = add([ rect(50,50), pos(cen_x + 365 , cen_y + 95), color(red), opacity(0.7) ]);
+    const p2rec_green = add([ rect(50,50), pos(cen_x + 365 , cen_y + 95), color(green), opacity(0) ]);
+    const starttext = add([ text("starting game...", 24), pos(cen_x + 90, cen_y + 30), scale(0.75), color(1, 1, 1), opacity(0) ]);
     
-    const p2rec_red = add([
-        rect(50,50), 
-        pos(cen_x + 365 , cen_y + 95), 
-        color(red),
-        opacity(0.7)
-        
-    ]);
-    const p2rec_green = add([
-        rect(50,50), 
-        pos(cen_x + 365 , cen_y + 95), 
-        color(green),
-        opacity(0)
-        
-    ]);
+    
+    add([rect(500,75), pos(cen_x - 30 , cen_y - 95), color(128, 128, 128), opacity(0.7) ]);
+    
+    const title = add([text("press s to ready up", 32), pos(cen_x, cen_y - 80), color(1, 1, 1) ]);
+    
 
-    const starttext = add([
-        text("starting game...", 24),
-        pos(cen_x + 90, cen_y + 30),
-        scale(0.75),
-        color(1, 1, 1),
-        opacity(0) 
-    ]);
+    add([ scale(1.2), text("player 1", 32), pos(cen_x - 230, cen_y + 100), color(1, 1, 1) ]);
     
-    
-    add([
-        rect(500,75), 
-        pos(cen_x - 30 , cen_y - 95), 
-        color(128, 128, 128),
-        opacity(0.7) 
-    ]);
-    
-    
-    const title = add([
-        text("press s to ready up", 32),
-        pos(cen_x, cen_y - 80),
-        color(1, 1, 1), 
-    ]);
-
-    add([
-        scale(1.2),
-        text("player 1", 32), 
-        pos(cen_x - 230, cen_y + 100), 
-        color(1, 1, 1), 
-    ]);
-    
-    add([
-        scale(1.2),
-        text("player 2", 32),
-        pos(cen_x + 470, cen_y + 100), 
-        color(1, 1, 1), 
-    ]);
+    add([scale(1.2), text("player 2", 32), pos(cen_x + 470, cen_y + 100), color(1, 1, 1) ]);
 
     console.log("up to here");
     title.text = "send link to friend to join";
    
    
     // there is probably already methods called connect so will just use this
-    var socket;
+    
     var myPlayerNumber = 0;
     var game_id;
+    var socket;
+
     function getGameID() {
         return fetch(`http://localhost:8008/newgame`)
-            .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
-            .then(data => {
-                console.log("game id: " + data.game_id)
-                return data.game_id;
+        .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
+        .then(data => {
+            console.log("game id: " + data.game_id)
+            return data.game_id;
         });
     }
-
+    let p1ready = false;
+    let p2ready = false;
+    
     async function connectshab() {
         //const game_id = new URLSearchParams(window.location.search).get('game_id');
         console.log("connect shab");
         game_id = await getGameID();
 
         if (game_id != null) {
-            let r_counter = 0;
+            //let r_counter = 0;
             socket = io.connect(`http://localhost:8008/`, {
                 withCredentials: true,
                 query: { game_id: game_id }
             });
+            globalsocket = socket;
+            console.log("global socket: ",  globalsocket);
+            console.log("reg socket: ",  socket);
+
 
             socket.on('playerNumber', (playerNumber) => {
                 myPlayerNumber = playerNumber;
@@ -259,25 +221,20 @@ scene ("ready_up", () => {
                 console.log("player:" + myPlayerNumber);
                 console.log(data.playerNumber);
                 // run right
-                if (data.playerNumber === 1) {
-                    if (data.direction === 'start') {
+
+                if (data.playerNumber === 1 && data.direction === 'start') {
                         console.log("player 1 ready");
                         p1rec_red.opacity = 0;
                         p1rec_green.opacity = 0.7;
-                        r_counter+=1;
-        
-                    }
+                        p1ready = true;
                 }
-                if (data.playerNumber === 2) {
-                    if (data.direction === 'start') {
+                if (data.playerNumber === 2 && data.direction === 'start') {
                         console.log("player 2 ready");
                         p2rec_red.opacity = 0;
                         p2rec_green.opacity = 0.7;
-                        r_counter+=1;
-                    }
+                        p2ready = true;                   
                 }
-        
-                if (r_counter == 2){
+                if (p1ready && p2ready) {
                     starttext.opacity = 1.0;
                         wait(2, () => {
                             console.log("starting game");
@@ -384,8 +341,10 @@ scene ("end", () => {
         color(1, 1, 1), 
     ]);
 
+    var socket = globalsocket;
     
-    let r_counter = 0;
+    let p1ready = false;
+    let p2ready = true;
     onKeyPress("s", () => {
         // i need to change this "direction"
         //console.log("test");
@@ -401,7 +360,7 @@ scene ("end", () => {
                 console.log("player 1 ready");
                 p1rec_red.opacity = 0;
                 p1rec_green.opacity = 0.7;
-                r_counter+=1;
+                p1ready = true;
 
             }
         }
@@ -410,11 +369,11 @@ scene ("end", () => {
                 console.log("player 2 ready");
                 p2rec_red.opacity = 0;
                 p2rec_green.opacity = 0.7;
-                r_counter+=1;
+                p2ready = true;
             }
         }
 
-        if (r_counter == 2){
+        if (p1ready && p2ready){
             starttext.opacity = 1.0;
             wait(2, () => {
                 console.log("starting game");
@@ -509,9 +468,7 @@ scene("fight", () => {
 ////////////////////////////////////////////////////////////////
 // init socket.io    
 // we might not need to put it here -- we did not need to put it here
-
-
-
+   var socket = globalsocket;
 
    //init player
 
