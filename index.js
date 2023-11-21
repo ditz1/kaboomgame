@@ -9,7 +9,7 @@ const cors = require('cors');
 // Setting up Socket.IO with CORS
 const io = require('socket.io')(server, {
     cors: {
-        origin: "http://localhost:8008", // Make sure this matches your client origin
+        origin: "http://localhost:8008/*", // Make sure this matches your client origin
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -19,11 +19,6 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 let games = {};
-let pc = 0;
-
-// Endpoint to create a new game and return its unique ID
-
-// Route to serve the game client
 
 app.get('/newgame', (req, res) => {
     let availableGameId = null;
@@ -41,8 +36,9 @@ app.get('/newgame', (req, res) => {
         availableGameId = uuidv4();
         games[availableGameId] = {};
     }
-
-    res.json({ game_id: availableGameId }); // Correctly send back the new or existing game ID
+    let gameUrl = `http://localhost:8008/${availableGameId}`;
+    console.log("game sent: " + gameUrl);
+    res.json({ url: gameUrl }); // Correctly send back the new or existing game ID
 });
 
 app.get('/:game_id', (req, res) => {
@@ -57,13 +53,20 @@ app.get('/:game_id', (req, res) => {
 });
 
 io.on('connection', (socket) => {
+    console.log("socket connected");
     let game_id = socket.handshake.query.game_id;
     console.log("game id: " + game_id);
+    
+    /*for (let game in games) {
+      console.log("game: " + game);
+    }*/
+    
     if (game_id && games[game_id]) {
         socket.join(game_id);
 
         const availableNumber = getAvailablePlayerNumber(game_id);
         games[game_id][socket.id] = { playerNumber: availableNumber };
+        
 
         console.log(`Player connected: ${socket.id} as Player ${availableNumber}`);
         socket.emit('playerNumber', availableNumber);

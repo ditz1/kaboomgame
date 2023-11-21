@@ -176,31 +176,37 @@ scene ("ready_up", () => {
     // there is probably already methods called connect so will just use this
     
     var myPlayerNumber = 0;
-    var game_id;
-    var socket;
 
-    function getGameID() {
+    function getGameURL() {
         return fetch(`http://localhost:8008/newgame`)
         .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
         .then(data => {
-            console.log("game id: " + data.game_id)
-            return data.game_id;
+            console.log("game id: " + data.url);
+            return data.url;
         });
     }
+
     let p1ready = false;
     let p2ready = false;
     
     async function connectshab() {
         //const game_id = new URLSearchParams(window.location.search).get('game_id');
         console.log("connect shab");
-        game_id = await getGameID();
+        gameUrl = await getGameURL();
+        
 
-        if (game_id != null) {
+        if (gameUrl != null) {
+            const urlParts = new URL(gameUrl);
+            let game_id = urlParts.pathname.replace('/', '');
+            console.log("gameid: " + game_id);
             //let r_counter = 0;
+            
+            
             socket = io.connect(`http://localhost:8008/`, {
                 withCredentials: true,
                 query: { game_id: game_id }
             });
+            
             globalsocket = socket;
             console.log("global socket: ",  globalsocket);
             console.log("reg socket: ",  socket);
@@ -254,6 +260,7 @@ scene ("ready_up", () => {
     
     console.log("but not here");
     connectshab();
+    //window.location.href = gameUrl;
     
 
 });
@@ -341,7 +348,7 @@ scene ("end", () => {
         color(1, 1, 1), 
     ]);
 
-    var socket = globalsocket;
+    let socket = globalsocket;
     
     let p1ready = false;
     let p2ready = true;
@@ -468,7 +475,7 @@ scene("fight", () => {
 ////////////////////////////////////////////////////////////////
 // init socket.io    
 // we might not need to put it here -- we did not need to put it here
-   var socket = globalsocket;
+   let socket = globalsocket;
 
    //init player
 
