@@ -170,13 +170,14 @@ scene ("ready_up", () => {
     add([scale(1.2), text("player 2", 32), pos(cen_x + 470, cen_y + 100), color(1, 1, 1) ]);
 
     console.log("up to here");
-    title.text = "send link to friend to join";
    
    
     // there is probably already methods called connect so will just use this
     
-    var myPlayerNumber = 0;
-
+    let myPlayerNumber = 0;
+    let p1ready = false;
+    let p2ready = false;
+    
     function getGameURL() {
         return fetch(`http://localhost:8008/newgame`)
         .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
@@ -185,16 +186,13 @@ scene ("ready_up", () => {
             return data.url;
         });
     }
-
-    let p1ready = false;
-    let p2ready = false;
-    
+    let gameUrl = "";
+ 
     async function connectshab() {
         //const game_id = new URLSearchParams(window.location.search).get('game_id');
         console.log("connect shab");
         gameUrl = await getGameURL();
         
-
         if (gameUrl != null) {
             const urlParts = new URL(gameUrl);
             let game_id = urlParts.pathname.replace('/', '');
@@ -206,7 +204,7 @@ scene ("ready_up", () => {
                 withCredentials: true,
                 query: { game_id: game_id }
             });
-            
+
             globalsocket = socket;
             console.log("global socket: ",  globalsocket);
             console.log("reg socket: ",  socket);
@@ -254,11 +252,26 @@ scene ("ready_up", () => {
             console.log("error getting game id");
         }
     }
+    
+    document.getElementById('copyButton').addEventListener('click', function() {
+        if (gameUrl) {
+            navigator.clipboard.writeText(gameUrl)
+                .then(() => {
+                    console.log('URL copied to clipboard');
+                    // Optionally, provide feedback to the user that the URL was copied
+                })
+                .catch(err => console.error('Error in copying URL: ', err));
+        } else {
+            console.log('No game URL available to copy');
+        }
+    });
+    
 
     //window.addEventListener('load', connectshab);
     console.log("test");
     
     console.log("but not here");
+    
     connectshab();
     //window.location.href = gameUrl;
     
