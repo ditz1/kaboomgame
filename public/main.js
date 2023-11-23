@@ -55,7 +55,10 @@ loadSprite("attack-player1", "assets/attack-player1.png", {
     sliceX: 6, sliceY: 1, anims: { "attack": { from: 1, to: 5, speed: 18}}
 });
 loadSprite("block-player1", "assets/block-player1.png", {
-    sliceX: 6, sliceY: 1, anims: { "block": { from: 1, to: 5, speed: 18}}
+    sliceX: 6, sliceY: 1, anims: { "block": { from: 1, to: 4, speed: 18}}
+});
+loadSprite("holdblock-player1", "assets/block-player1.png", {
+    sliceX: 6, sliceY: 1, anims: { "holdblock": { from: 4, to: 5, speed: 10, loop:true}}
 });
 loadSprite("run-player1", "assets/run-player1.png", {
     sliceX: 8, sliceY: 1, anims: { "run": { from: 0, to: 7, speed: 18}}
@@ -75,7 +78,10 @@ loadSprite("attack-player2", "assets/attack-player2.png", {
     sliceX: 6, sliceY: 1, anims: { "attack": { from: 1, to: 5, speed: 18}}
 });
 loadSprite("block-player2", "assets/block-player2.png", {
-    sliceX: 6, sliceY: 1, anims: { "block": { from: 1, to: 5, speed: 18}}
+    sliceX: 6, sliceY: 1, anims: { "block": { from: 1, to: 4, speed: 18}}
+});
+loadSprite("holdblock-player2", "assets/block-player2.png", {
+    sliceX: 6, sliceY: 1, anims: { "holdblock": { from: 4, to: 5, speed: 10, loop:true}}
 });
 loadSprite("run-player2", "assets/run-player2.png", {
     sliceX: 8, sliceY: 1, anims: { "run": { from: 0, to: 7, speed: 18}}
@@ -182,7 +188,7 @@ scene ("ready_up", () => {
     
     function getGameURL() {
         //CHANGE THIS IP
-        return fetch(`http://192.168.1.27/newgame`)
+        return fetch(`http://192.168.1.27:8080/newgame`)
         .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
         .then(data => {
             console.log("game id: " + data.url);
@@ -203,7 +209,7 @@ scene ("ready_up", () => {
             //let r_counter = 0;
             
             //CHANGE THIS IP
-            socket = io.connect(`http://192.168.1.27/`, {
+            socket = io.connect(`http://192.168.1.27:8080/`, {
                 withCredentials: true,
                 query: { game_id: game_id }
             });
@@ -425,6 +431,7 @@ scene("fight", () => {
                     idle: "idle-" + id,
                     jump: "jump-" + id,
                     block: "block-" + id,
+                    holdblock: "holdblock-" + id,
                     attack: "attack-" + id,
                     death: "death-" + id
                 }
@@ -466,8 +473,6 @@ scene("fight", () => {
             player2.flipX = true;
             //console.log("p1 on left, p2 on right");
         }
-
-        
 
         player1flip = player1.flipX;
         player2flip = player2.flipX;
@@ -582,12 +587,9 @@ scene("fight", () => {
                     console.log("p2 not attacking");
                     p2_is_attacking = false;
                 }
-            });
-               
+                });
             });
             
-                
-                
             player.play("attack", {
                 onEnd: () => {
                     
@@ -619,10 +621,18 @@ scene("fight", () => {
                     }); 
             player.play("block", {
                 onEnd: () => {
-                    resetPlayerToIdle(player);
-                    player.flipX = currentFlip;
-                }
-            }) 
+                    if (myPlayerNumber === 1 && p1_is_blocking) {
+                        player.use(sprite(player.sprites.holdblock))
+                        player.flipX = currentFlip;
+                        player.play("holdblock", {
+                            onEnd: () => {
+                                resetPlayerToIdle(player);
+                                player.flipX = currentFlip;
+                            }
+                        }); 
+                    }
+                } // wtf is this
+            }); 
         }
     }
 
@@ -643,7 +653,6 @@ scene("fight", () => {
     onKeyRelease("a", () => {
         socket.emit('release', { game_id: game_id, direction: 'left' });
     });
-
 
     // jump
     onKeyDown("w", () => {
@@ -667,7 +676,6 @@ scene("fight", () => {
         socket.emit('move', { game_id: game_id, direction: 'attack' });  
     });
     
-
    
     //state control
     socket.on('state', (data) => {
@@ -763,13 +771,13 @@ scene("fight", () => {
         }
         //block
         if (data.playerNumber === 1 && data.direction === 'block') {
-            if (!p1_is_attacking){
+            if (!p1_is_attacking && !p1_is_blocking){
                 block(player1);
                 console.log("player1 started blocking");
             }
         }
         if (data.playerNumber === 2 && data.direction === 'block') {
-            if (!p2_is_attacking){
+            if (!p2_is_attacking && !p2_is_blocking){
                 block(player2);
                 console.log("player2 started blocking");
             }
@@ -862,7 +870,6 @@ scene("fight", () => {
         wait (3 , () => {
             console.log(gamecounter);
             gamecounter+=1;
-            
             if (gamecounter > 2) {
                 go("end");
                 console.log("going back to start");
@@ -872,7 +879,7 @@ scene("fight", () => {
                 console.log(gamecounter);
                 go("fight");
             }
-        })
+        });
     }
 
     const countInterval = setInterval(() => {
@@ -918,25 +925,19 @@ scene("fight", () => {
     ]);
 
 
-
-
     player1.onCollide(player2.id + "attackHitbox", () => {
         if (gameOver) {
             return;
         }
         console.log("did p1 block: " + p1_is_blocking);
-        
         if (player1.health !== 0) {
             socket.emit('gamestate', { game_id: game_id, direction: 'p1l'});  
         }
-        
         if (player1.health === 0) {
             socket.emit('gamestate', { game_id: game_id, direction: 'p2win'});
         }
     });
 
-    
-    
     player2.onCollide(player1.id + "attackHitbox", () => {
         if (gameOver) {
             return;

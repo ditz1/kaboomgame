@@ -9,7 +9,7 @@ const cors = require('cors');
 // Setting up Socket.IO with CORS
 const io = require('socket.io')(server, {
     cors: {
-        origin: "http://192.168.1.27/*", // Make sure this matches your client origin
+    origin: "http://192.168.1.27:8080/*", // Make sure this matches your client origin
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -36,7 +36,7 @@ app.get('/newgame', (req, res) => {
         availableGameId = uuidv4();
         games[availableGameId] = {};
     }
-    let gameUrl = `http://192.168.1.27/${availableGameId}`;
+    let gameUrl = `http://192.168.1.27:8080/${availableGameId}`;
     console.log("game sent: " + gameUrl);
     res.json({ url: gameUrl }); // Correctly send back the new or existing game ID
 });
@@ -126,6 +126,6 @@ function updatePlayerNumbers(game_id) {
     }
 }
 
-server.listen(80, () => {
+server.listen(8080, () => {
     console.log('Server is running on port 80');
 });
