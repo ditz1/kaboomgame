@@ -167,12 +167,8 @@ scene ("ready_up", () => {
     
     
     add([rect(500,75), pos(cen_x - 30 , cen_y - 95), color(128, 128, 128), opacity(0.7) ]);
-    
     const title = add([text("press s to ready up", 32), pos(cen_x, cen_y - 80), color(1, 1, 1) ]);
-    
-
     add([ scale(1.2), text("player 1", 32), pos(cen_x - 230, cen_y + 100), color(1, 1, 1) ]);
-    
     add([scale(1.2), text("player 2", 32), pos(cen_x + 470, cen_y + 100), color(1, 1, 1) ]);
 
     console.log("up to here");
@@ -185,7 +181,8 @@ scene ("ready_up", () => {
     let p2ready = false;
     
     function getGameURL() {
-        return fetch(`http://localhost:8008/newgame`)
+        //CHANGE THIS IP
+        return fetch(`http://192.168.1.27/newgame`)
         .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
         .then(data => {
             console.log("game id: " + data.url);
@@ -205,8 +202,8 @@ scene ("ready_up", () => {
             console.log("gameid: " + game_id);
             //let r_counter = 0;
             
-            
-            socket = io.connect(`http://localhost:8008/`, {
+            //CHANGE THIS IP
+            socket = io.connect(`http://192.168.1.27/`, {
                 withCredentials: true,
                 query: { game_id: game_id }
             });
@@ -258,7 +255,7 @@ scene ("ready_up", () => {
             console.log("error getting game id");
         }
     }
-    
+    //doesnt work without nginx proxy?
     document.getElementById('copyButton').addEventListener('click', function() {
         if (gameUrl) {
             navigator.clipboard.writeText(gameUrl)
@@ -272,16 +269,9 @@ scene ("ready_up", () => {
         }
     });
     
-
-    //window.addEventListener('load', connectshab);
     console.log("test");
-    
     console.log("but not here");
-    
     connectshab();
-    //window.location.href = gameUrl;
-    
-
 });
 
 scene ("end", () => {
@@ -358,8 +348,6 @@ scene ("end", () => {
             })
         }
     });
-   
-
 });
 
 scene("fight", () => {
@@ -441,7 +429,7 @@ scene("fight", () => {
                     death: "death-" + id
                 }
             }
-        ])
+        ]);
     }
 
     setGravity(1200);
@@ -463,9 +451,6 @@ scene("fight", () => {
     player2.play("idle");
     player2.flipX = player2flip;
 
-
-
-    
 
     function swapFlip() {
         let p1_pos = player1.pos.x;
@@ -565,11 +550,11 @@ scene("fight", () => {
             const slashXFlipped = player.pos.x - 350;
             const slashY = player.pos.y - 200;
             //let hitbox_size = [300,300];
-            console.log("here");
-            console.log("my player number: " + myPlayerNumber);
+            //console.log("here");
+            //console.log("my player number: " + myPlayerNumber);
             wait(15/60, () => {
                 if(myPlayerNumber === 1){
-                    console.log("or here maybe");
+                    //console.log("or here maybe");
                     add ([
                         rect(300,200),
                         area(),
@@ -587,22 +572,29 @@ scene("fight", () => {
                         player.id + "attackHitbox"
                     ]);
                 }
+
+            wait(30/60 , () => {
+                if (myPlayerNumber == 1) {
+                    console.log("p1 not attacking");
+                    p1_is_attacking = false;
+                }
+                if (myPlayerNumber == 2) {
+                    console.log("p2 not attacking");
+                    p2_is_attacking = false;
+                }
+            });
+               
             });
             
                 
                 
             player.play("attack", {
                 onEnd: () => {
-                    socket.emit('release', {game_id: game_id, direction: 'attack' });
-                    resetPlayerToIdle(player);
+                    
                     player.flipX = currentFlip;
-                    if (myPlayerNumber == 1) {
-                        p1_is_attacking = false;
-                    }
-                    if (myPlayerNumber == 2) {
-                        p2_is_attacking = false;
-                    }
-                    console.log("or here");
+                    resetPlayerToIdle(player);
+                    socket.emit('release', {game_id: game_id, direction: 'attack' });
+                    //console.log("or here");
                     
                 }
             }) 
@@ -610,53 +602,35 @@ scene("fight", () => {
     }
     //lets see
     function block(player) {
-        
         if (player.health === 0) {
             return;
         }
-       
         const currentFlip = player.flipX;
         if (player.curAnim() !== "block") {
             player.use(sprite(player.sprites.block))
             player.flipX = currentFlip;
-           
-            //let hitbox_size = [300,300];
             wait(20/60, () => {
-                    
-                    if (myPlayerNumber == 1) {
+                    if (myPlayerNumber === 1) {
                         p1_is_blocking = true;
                     }
-                    if (myPlayerNumber == 2) {
+                    if (myPlayerNumber === 2) {
                         p2_is_blocking = true;
-                    }
-                    
-                  
+                    }                    
                     }); 
             player.play("block", {
                 onEnd: () => {
-                    socket.emit('release', {game_id: game_id, direction: 'block' });
                     resetPlayerToIdle(player);
                     player.flipX = currentFlip;
-                    if (myPlayerNumber === 1) {
-                        //destroyAll(player1.id + "blockHitbox");
-                        p1_is_blocking = false;
-                    }
-                    if (myPlayerNumber === 2) {
-                        //destroyAll(player2.id + "blockHitbox");
-                        p2_is_blocking = false;
-                    }
                 }
             }) 
         }
     }
 
-    
-    
     // move right
     onKeyDown("d", () => {
             socket.emit('move', { game_id: game_id, direction: 'right' });
-            //console.log("client pressed d");
     });
+
     onKeyRelease("d", () => {
         socket.emit('release', { game_id: game_id, direction: 'right' });
     });
@@ -664,8 +638,8 @@ scene("fight", () => {
     // move left
     onKeyDown("a", () => {
             socket.emit('move', { game_id: game_id, direction: 'left' });   
-        
     });
+
     onKeyRelease("a", () => {
         socket.emit('release', { game_id: game_id, direction: 'left' });
     });
@@ -679,21 +653,18 @@ scene("fight", () => {
     //block
     onKeyDown("p", () => {
         socket.emit('move', { game_id: game_id, direction: 'block' });
-        console.log("block");
     });
+
     onKeyRelease("p", () => {
         socket.emit('release', { game_id: game_id, direction: 'block' });
     });
-
     
     player1.onUpdate(() => resetAfterJump(player1));
     player2.onUpdate(() => resetAfterJump(player2));
     
     //attack
     onKeyPress("o", () => {
-        socket.emit('move', { game_id: game_id, direction: 'attack' });
-        //console.log("sent data");
-  
+        socket.emit('move', { game_id: game_id, direction: 'attack' });  
     });
     
 
@@ -716,12 +687,14 @@ scene("fight", () => {
         }
 
         if (data.direction === 'p1l' && !gameOver) {
-            console.log("p1 lost health");
             if (!p1_is_blocking) {
+                console.log("p1 lost health");
                 player1.health -= 50;
                 tween(player1HealthBar.width, player1.health, 1, (val) => {
                     player1HealthBar.width = val;
                 }, easings.easeOutSine)
+            } else {
+                console.log("p1 blocked!");
             }
         }
         if (data.direction === 'p2l' && !gameOver) {
@@ -731,40 +704,39 @@ scene("fight", () => {
                 tween(player2HealthBar.width, player2.health, 1, (val) => {
                     player2HealthBar.width = val;
                 }, easings.easeOutSine)
+            } else {
+                console.log("p2 blocked!");
             }
         }
         
     });
 
     socket.on('move', (data) => {
-        //console.log("player:" + myPlayerNumber);
         swapFlip();
-        //console.log(data.direction);
-        //run right
         myPlayerNumber = data.playerNumber;
         if (data.playerNumber === 1 && data.direction === 'right') {
             //console.log("server responded d");
-            if (!p1_is_attacking){
-                destroyAll(player1.id + "attackHitbox");
-                run(player1, 500, player1flip);
-            } 
+                if (!p1_is_blocking) {
+                    destroyAll(player1.id + "attackHitbox");
+                    run(player1, 500, player1flip);
+                }
         }
         if (data.playerNumber === 2 && data.direction === 'right') {
-                //console.log("server responded d");
-                if (!p2_is_attacking){
-                    destroyAll(player2.id + "attackHitbox");
-                    run(player2, 500, player2flip);
-                }
+            if (!p2_is_blocking) {
+                destroyAll(player2.id + "attackHitbox");
+                run(player2, 500, player2flip);
+            }
         }
         //run left
         if (data.playerNumber === 1 && data.direction === 'left') {
-            if (!p1_is_attacking){
+            if (!p1_is_blocking) {
                 destroyAll(player1.id + "attackHitbox");
                 run(player1, -500, player1flip);
-            } 
+            }
         }
+
         if (data.playerNumber === 2 && data.direction === 'left') {
-            if (!p2_is_attacking){
+            if (!p2_is_blocking) {
                 destroyAll(player2.id + "attackHitbox");
                 run(player2, -500, player2flip);
             }
@@ -784,50 +756,44 @@ scene("fight", () => {
 
         //attack
         if (data.playerNumber === 1 && data.direction === 'attack') {
-            
                 attack(player1, ["a", "d", "w"]);
-            
         }
         if (data.playerNumber === 2 && data.direction === 'attack') {
-            
                 attack(player2, ["left", "right", "up"]);
-            
         }
         //block
         if (data.playerNumber === 1 && data.direction === 'block') {
-                //console.log("p1 block");
-                if (!p1_is_attacking){
-                    block(player1);
-                }
-            
+            if (!p1_is_attacking){
+                block(player1);
+                console.log("player1 started blocking");
+            }
         }
         if (data.playerNumber === 2 && data.direction === 'block') {
-                //console.log("p2 block");
-                if (!p2_is_attacking){
-                    block(player2);
-                }
-            
+            if (!p2_is_attacking){
+                block(player2);
+                console.log("player2 started blocking");
+            }
         }
         
     });
     
     socket.on('release', (data) => {
-        //console.log("player:" + myPlayerNumber);
-        //console.log("released key: " + data.direction);
         swapFlip();
-
-
+        
         if (data.playerNumber === 1 && data.direction === 'attack') {
             destroyAll(player1.id + "attackHitbox");
         }
         if (data.playerNumber === 2 && data.direction === 'attack') {
             destroyAll(player2.id + "attackHitbox");
         }
+        
         if (data.playerNumber === 1 && data.direction === 'block') {
             p1_is_blocking = false;
+            console.log("p1 stopped blocking");
         }
         if (data.playerNumber === 2 && data.direction === 'block') {
             p2_is_blocking = false;
+            console.log("p2 stopped blocking");
         }
       
         
@@ -835,16 +801,16 @@ scene("fight", () => {
             if (player1.health !== 0) {
                 resetPlayerToIdle(player1);
                 player1.flipX = player1flip;
+                p1_is_blocking = false;
             }
         }
         if (data.playerNumber === 2) {
             if (player2.health !== 0) {
                 resetPlayerToIdle(player2);
                 player2.flipX = player2flip;
+                p2_is_blocking = false;
             }
         }
-        
-
     });
     
 /*
@@ -958,6 +924,7 @@ scene("fight", () => {
         if (gameOver) {
             return;
         }
+        console.log("did p1 block: " + p1_is_blocking);
         
         if (player1.health !== 0) {
             socket.emit('gamestate', { game_id: game_id, direction: 'p1l'});  
@@ -966,7 +933,6 @@ scene("fight", () => {
         if (player1.health === 0) {
             socket.emit('gamestate', { game_id: game_id, direction: 'p2win'});
         }
-        console.log("did p1 block: " + p1_is_blocking);
     });
 
     
@@ -975,6 +941,7 @@ scene("fight", () => {
         if (gameOver) {
             return;
         }
+        console.log("did p2 block: " + p2_is_blocking);
         
         if (player2.health !== 0) {            
             socket.emit('gamestate', {game_id: game_id, direction: 'p2l'});
@@ -983,7 +950,6 @@ scene("fight", () => {
         if (player2.health === 0) {
             socket.emit('gamestate', {game_id: game_id, direction: 'p1win'});
         }
-        console.log("did p2 block: " + p2_is_blocking);
     });
 });
 
