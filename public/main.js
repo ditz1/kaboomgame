@@ -171,11 +171,15 @@ scene ("ready_up", () => {
     const p2rec_green = add([ rect(50,50), pos(cen_x + 365 , cen_y + 95), color(green), opacity(0) ]);
     const starttext = add([ text("starting game...", 24), pos(cen_x + 90, cen_y + 30), scale(0.75), color(1, 1, 1), opacity(0) ]);
     
-    
     add([rect(500,75), pos(cen_x - 30 , cen_y - 95), color(128, 128, 128), opacity(0.7) ]);
     const title = add([text("press s to ready up", 32), pos(cen_x, cen_y - 80), color(1, 1, 1) ]);
     add([ scale(1.2), text("player 1", 32), pos(cen_x - 230, cen_y + 100), color(1, 1, 1) ]);
     add([scale(1.2), text("player 2", 32), pos(cen_x + 470, cen_y + 100), color(1, 1, 1) ]);
+
+    add([rect(800,65), pos(cen_x - 130 , cen_y + 200), color(128, 128, 128), opacity(0.7) ]);
+    const url = add([scale(1), text("url: "), pos(cen_x - 130, cen_y + 210), color(0,0,0), opacity(1)])
+    
+    
 
     console.log("up to here");
    
@@ -196,11 +200,14 @@ scene ("ready_up", () => {
         });
     }
     let gameUrl = "";
- 
+    
+    /////START ASYNC CONNECT///////
+
     async function connectshab() {
         //const game_id = new URLSearchParams(window.location.search).get('game_id');
         console.log("connect shab");
         gameUrl = await getGameURL();
+        url.text = ("url: " + gameUrl);
         
         if (gameUrl != null) {
             const urlParts = new URL(gameUrl);
@@ -261,6 +268,11 @@ scene ("ready_up", () => {
             console.log("error getting game id");
         }
     }
+    
+    
+    /////END ASYNC CONNECT///////
+    
+    
     //doesnt work without nginx proxy?
     document.getElementById('copyButton').addEventListener('click', function() {
         if (gameUrl) {
@@ -317,6 +329,7 @@ scene ("end", () => {
     
     let p1ready = false;
     let p2ready = true;
+
     onKeyPress("s", () => {
         // i need to change this "direction"
         //console.log("test");
@@ -327,22 +340,17 @@ scene ("end", () => {
         console.log("player:" + myPlayerNumber);
         console.log(data.playerNumber);
         //run right
-        if (data.playerNumber === 1) {
-            if (data.direction === 'start') {
+        if (data.playerNumber === 1 && data.direction === 'start') {
                 console.log("player 1 ready");
                 p1rec_red.opacity = 0;
                 p1rec_green.opacity = 0.7;
                 p1ready = true;
-
-            }
         }
-        if (data.playerNumber === 2) {
-            if (data.direction === 'start') {
+        if (data.playerNumber === 2 && data.direction === 'start') {
                 console.log("player 2 ready");
                 p2rec_red.opacity = 0;
                 p2rec_green.opacity = 0.7;
                 p2ready = true;
-            }
         }
 
         if (p1ready && p2ready){
@@ -358,14 +366,8 @@ scene ("end", () => {
 
 scene("fight", () => {
    
-    const background = add([
-        sprite("background"),
-        scale(4)
-    ]);
-
-    background.add([
-        sprite("trees"),
-    ]);
+    const background = add([ sprite("background"), scale(4)]);
+    background.add([ sprite("trees"), ]);
 
     const groundTiles = addLevel([
         "","","","","","","","","",
@@ -448,6 +450,9 @@ scene("fight", () => {
     let p1_is_blocking = false;
     let p2_is_blocking = false;
 
+    let p1_holding_block = false;
+    let p2_holding_block = false;
+
 
     const player1 = makePlayer(200, 100, 16, 42, 4, "player1");
     player1.use(sprite(player1.sprites.idle));
@@ -524,7 +529,10 @@ scene("fight", () => {
         }
     }
     // attack
-    function attack(player, excludedKeys) {
+    function attack(player) {
+        if (player.health === 0) {
+            return;
+        }
         if (myPlayerNumber === 1) {
             p1_is_attacking = true;
         }
@@ -532,21 +540,7 @@ scene("fight", () => {
             p2_is_attacking = true;
         }
         
-        if (player.health === 0) {
-            return;
-        }
-        for (const key of excludedKeys) {
-            if (isKeyDown(key)) {
-                console.log("idk");
-                if (myPlayerNumber == 1) {
-                    console.log("glitch");
-                    destroyAll(player1.id + "attackHitbox");
-                }
-                if (myPlayerNumber == 2) {
-                    destroyAll(player2.id + "attackHitbox");
-                }
-            }
-        }
+
         const currentFlip = player.flipX;
         if (player.curAnim() !== "attack") {
             player.use(sprite(player.sprites.attack))
@@ -557,7 +551,7 @@ scene("fight", () => {
             //let hitbox_size = [300,300];
             //console.log("here");
             //console.log("my player number: " + myPlayerNumber);
-            wait(15/60, () => {
+            wait(20/60, () => {
                 if(myPlayerNumber === 1){
                     //console.log("or here maybe");
                     add ([
@@ -577,8 +571,9 @@ scene("fight", () => {
                         player.id + "attackHitbox"
                     ]);
                 }
+            });
 
-            wait(30/60 , () => {
+            wait(25/60 , () => {
                 if (myPlayerNumber == 1) {
                     console.log("p1 not attacking");
                     p1_is_attacking = false;
@@ -588,13 +583,21 @@ scene("fight", () => {
                     p2_is_attacking = false;
                 }
                 });
-            });
+                wait(30/60 , () => {
+                    if (myPlayerNumber === 1) {
+                        destroyAll(player1.id + "attackHitbox");
+                    }
+                    if (myPlayerNumber === 2) {
+                        destroyAll(player2.id + "attackHitbox");
+                    }
+                });
+            
             
             player.play("attack", {
                 onEnd: () => {
                     
                     player.flipX = currentFlip;
-                    resetPlayerToIdle(player);
+                    resetPlayerToIdle(player);                    
                     socket.emit('release', {game_id: game_id, direction: 'attack' });
                     //console.log("or here");
                     
@@ -622,6 +625,16 @@ scene("fight", () => {
             player.play("block", {
                 onEnd: () => {
                     if (myPlayerNumber === 1 && p1_is_blocking) {
+                        player.use(sprite(player.sprites.holdblock))
+                        player.flipX = currentFlip;
+                        player.play("holdblock", {
+                            onEnd: () => {
+                                resetPlayerToIdle(player);
+                                player.flipX = currentFlip;
+                            }
+                        }); 
+                    }
+                    if (myPlayerNumber === 2 && p2_is_blocking) {
                         player.use(sprite(player.sprites.holdblock))
                         player.flipX = currentFlip;
                         player.play("holdblock", {
@@ -764,10 +777,10 @@ scene("fight", () => {
 
         //attack
         if (data.playerNumber === 1 && data.direction === 'attack') {
-                attack(player1, ["a", "d", "w"]);
+                attack(player1);
         }
         if (data.playerNumber === 2 && data.direction === 'attack') {
-                attack(player2, ["left", "right", "up"]);
+                attack(player2);
         }
         //block
         if (data.playerNumber === 1 && data.direction === 'block') {
