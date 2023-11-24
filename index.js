@@ -33,7 +33,8 @@ app.get('/newgame', (req, res) => {
     // If no available game, create a new one
     if (!availableGameId) {
         console.log("new game created");
-        availableGameId = uuidv4();
+        const fulluid = uuidv4();
+        availableGameId = fulluid.substring(0, 5);
         games[availableGameId] = {};
     }
     let gameUrl = `http://192.168.1.27:8080/${availableGameId}`;
