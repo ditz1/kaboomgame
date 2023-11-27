@@ -192,7 +192,7 @@ scene ("ready_up", () => {
     
     function getGameURL() {
         //CHANGE THIS IP
-        return fetch(`http://192.168.1.27:8080/newgame`)
+        return fetch(`http://localhost:8008/newgame`)
         .then(response => response.ok ? response.json() : Promise.reject('Response not OK'))
         .then(data => {
             console.log("game id: " + data.url);
@@ -216,7 +216,7 @@ scene ("ready_up", () => {
             //let r_counter = 0;
             
             //CHANGE THIS IP
-            socket = io.connect(`http://192.168.1.27:8080/`, {
+            socket = io.connect(`http://localhost:8008/`, {
                 withCredentials: true,
                 query: { game_id: game_id }
             });

@@ -9,7 +9,7 @@ const cors = require('cors');
 // Setting up Socket.IO with CORS
 const io = require('socket.io')(server, {
     cors: {
-    origin: "http://192.168.1.27:8080/*", // Make sure this matches your client origin
+    origin: "http://localhost:8008/*", // Make sure this matches your client origin
         methods: ["GET", "POST"],
         credentials: true
     }
