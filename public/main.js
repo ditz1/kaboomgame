@@ -558,7 +558,7 @@ scene("fight", () => {
                         rect(300,200),
                         area(),
                         pos(currentFlip ? slashXFlipped: slashX, slashY),
-                        opacity(0.5),
+                        opacity(0),
                         player.id + "attackHitbox"
                     ]);
                 }
@@ -567,7 +567,7 @@ scene("fight", () => {
                         rect(300,200),
                         area(),
                         pos(currentFlip ? slashXFlipped: slashX, slashY),
-                        opacity(0.5),
+                        opacity(0),
                         player.id + "attackHitbox"
                     ]);
                 }
